@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>ComfyUI</title>
+        <script type="module">
+			import { app } from "./app.js";
+			await app.setup();
+			window.app = app;
+			window.graph = app.graph;
+		</script>
+    </head>
+	<body class="litegraph"></body>
+</html>
