@@ -27,7 +27,7 @@ class Node(BaseModel):
     properties: Optional[list[Property]] = None
 
 
-def model_to_node(model: BaseModel):
+def model_to_node(name: str,model: BaseModel):
     """
     Serialize pydantic model to JSON
     and sends to frontend to
@@ -65,10 +65,12 @@ def model_to_node(model: BaseModel):
         ]
     """
 
+    print(model)
+
     return Node(
-        name = model.__class__.__name__,
+        name = name,
         input = getattr(model,'INPUTS',None),
-        output = getattr(model,'INPUTS',None),
+        output = getattr(model,'OUTPUTS',None),
          # model.model_fields don't contain fields of ClassVar
         properties=[
             Property(

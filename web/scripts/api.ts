@@ -1,5 +1,5 @@
-let API_URL = '127.0.0.1'
-let API_PORT = "8080"
+let API_URL = ''
+let API_PORT = "8000"
 let NODE_PATH = 'nodes'
 
 export interface Property{
@@ -21,14 +21,16 @@ export interface ModelSchema{
 
 
 export class Api{
-    url: string
+    url: string;
 
     constructor(){
         this.url = `${API_URL}:${API_PORT}/${NODE_PATH}`
-
+        console.log(this.url)
     }
     async fetchNodes(){
-        let data = (await fetch(this.url)).json()
+        let data: Array<ModelSchema>  = await fetch('/nodes')
+            .then(response => response.json())
         return data 
     }
 }
+

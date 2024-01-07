@@ -4,12 +4,14 @@ import os
 import inspect
 from .node import model_to_node, Node
 from typing import Optional
-NODES: set[Optional[Node]] = set()
+from pydantic import BaseModel
+from pathlib import Path
+
+NODES: list[Optional[Node]] = []
 
 def load_custom_node(module_path, ignore=set()):
     """
     Load custom nodes to NODES VAR
-
     """
     module_name = os.path.basename(module_path)
     try: 
@@ -22,9 +24,15 @@ def load_custom_node(module_path, ignore=set()):
 
             global NODES
             # add nodes to scope
-            NODES |= {
-                model_to_node(cls) for cls in inspect.getmembers(module, inspect.isclass)
-            }
+            def _check_defined_pydantic(x):
+                return inspect.isclass(x) and issubclass(x, BaseModel) and x.__module__ == module_name
+                
+            NEW_NODES = [
+                model_to_node(*cls) for cls in inspect.getmembers(module, _check_defined_pydantic) 
+            ]
+
+            NODES.extend(NEW_NODES)
+            return NEW_NODES
     except Exception as e:
         print(f"Cannot import {module_path} module for custom nodes:", e)
 

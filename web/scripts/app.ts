@@ -1,16 +1,11 @@
-import {LGraph, LiteGraph} from './lib/litegraph.js'
-import {
-	Api,
-	Property,
-	Link,
-	ModelSchema
-} from './api.ts'
+import {Api, ModelSchema} from './api.js'
+
+declare var LiteGraph, LGraph, LGraphCanvas;
 
 
-
-
-function modelToNode(model : ModelSchema)
+export function modelToNode(model : ModelSchema)
 {
+    console.log(model)
 	function CustomNode(){
 		// register input
 		if (model.input){
@@ -27,11 +22,12 @@ function modelToNode(model : ModelSchema)
 		};
 	};
 
-	return model.name,CustomNode;
+    console.log(CustomNode)
+	LiteGraph.registerNodeType(model.name,CustomNode)
 }
 
 
-export class pydanticGraph{
+class pydanticGraph{
 	api: Api;
 	graph: any;
 
@@ -44,21 +40,21 @@ export class pydanticGraph{
     async registerNodes() {
         const app = this;
         // Load node definitions from the backend
-        const defs = await this.api.fetchNodes();
-
-		defs.forEach(
-			(x,i) => LiteGraph.registerNodeType(modelToNode(x))
-		)
-        await this.registerNodesFromDefs(defs);
-    }
+        await this.api.fetchNodes()
+			.then(defs => defs.forEach(
+				(x,i) => modelToNode(x))
+			);
+    };
 
     async setup(){
         this.graph = new LGraph();
         await this.registerNodes();
 
-        var canvas = new LGraphCanvas("#mycanvas", graph);
+        var canvas = new LGraphCanvas("#mycanvas", this.graph);
 
-        graph.start()
+        this.graph.start()
     }
 }
+
+export const app = new pydanticGraph(new Api()); 
 
