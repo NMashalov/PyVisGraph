@@ -8,8 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { Api } from './api.js';
+// var LiteGraph = global.LiteGraph;
 export function modelToNode(model) {
-    console.log(model);
     function CustomNode() {
         // register input
         if (model.input) {
@@ -22,12 +22,15 @@ export function modelToNode(model) {
         }
         ;
         // register name
-        this.title = model.name;
         this.properties = Object.assign({}, model.properties);
+        if (model.properties) {
+            model.properties.forEach((x, i) => this.addWidget("text", x.name, "", { property: x.name }));
+        }
+        ;
     }
     ;
-    console.log(`custom/${model.name}`);
-    LiteGraph.registerNodeType(`custom/${model.name}`, CustomNode);
+    CustomNode.title = model.name;
+    LiteGraph.registerNodeType(`custom/${CustomNode.title}`, CustomNode);
 }
 class pydanticGraph {
     constructor(api) {

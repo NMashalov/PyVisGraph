@@ -1,6 +1,10 @@
 {
     "compilerOptions": {
-        "lib": [ "ES2015", "DOM" , "es2015.promise" ],
+        "lib": [ "ES2015", "DOM"  ],
         "target": "ES6"
-    }
+    },
+    "files":[
+        "app.ts",
+        "api.ts"
+    ]
 }

@@ -2,10 +2,11 @@ import {Api, ModelSchema} from './api.js'
 
 declare var LiteGraph, LGraph, LGraphCanvas;
 
+// var LiteGraph = global.LiteGraph;
+
 
 export function modelToNode(model : ModelSchema)
 {
-    console.log(model)
 	function CustomNode(){
 		// register input
 		if (model.input){
@@ -16,14 +17,18 @@ export function modelToNode(model : ModelSchema)
 			model.output.forEach((x,i) => this.addOutput(x.name,x.type));
 		};
 		// register name
-		this.title = model.name;
 		this.properties = {
 			...model.properties
 		};
+
+		if (model.properties){
+			model.properties.forEach((x,i) => this.addWidget("text",x.name,"", { property: x.name}));
+		};	
 	};
 
-    console.log(CustomNode)
-	LiteGraph.registerNodeType(model.name,CustomNode)
+	CustomNode.title = model.name;
+
+	LiteGraph.registerNodeType(`custom/${CustomNode.title}`,CustomNode)
 }
 
 
