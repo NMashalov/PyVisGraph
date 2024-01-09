@@ -26,18 +26,47 @@ export function modelToNode(model : ModelSchema)
 				this.addWidget("text",name,def_value, { property: name})
 			}
 		};	
+
+		this.size = this.computeSize();	
 	};
+
+	// add helper on hover
+	// it will written multiline as usual
+	if (model.helper || model.properties) {
+		CustomNode.prototype.onDrawBackground = function(ctx){
+			if( this.mouseOver){
+				ctx.fillStyle = "#AAA";
+				let diff =  14;
+				// display header if only we have it
+				if (model.helper){
+					var lines = model.helper.split('\n');
+					for (var i = 0; i<lines.length; i++){
+						ctx.fillText(lines[i], 0, this.size[1] + diff );
+						diff += 14;
+					}
+				}
+				// display properties only if them have description
+				for (const [name, prop] of Object.entries(model.properties)){
+					if (prop.description){
+						ctx.fillText(`@${name}: ${prop.description}`, 0, this.size[1] + diff);
+						diff += 14;
+					}
+				}
+			}
+		};
+	}
+	
 
 	CustomNode.title = model.name;
 
 	LiteGraph.registerNodeType(`custom/${CustomNode.title}`,CustomNode)
-}
+};
 
 export interface pydanticGraph {
 	api: Api;
 	registerNodes(): void;
 	setup(): void;
-}
+};
 
 
 
@@ -74,7 +103,10 @@ class pydanticGraphImpl implements pydanticGraph {
 		var elem = document.createElement("span");
 		elem.id = "InstrumentPanel";
 		elem.className = "selector";
-		elem.innerHTML = "<button class='btn' id='download'>Download</button>";
+		elem.innerHTML = (
+			"<button class='btn' id='download'>Download</button>\
+			<button class='btn' id='validate'>Validate</button>"
+		)
 		header.appendChild(elem);
 
 		const graph = this.graph;
@@ -83,6 +115,12 @@ class pydanticGraphImpl implements pydanticGraph {
 		elem.querySelector("#download").addEventListener("click",async function(){
 			var data: string = JSON.stringify(graph.serialize());
 			await api.send_graph_json(data);
+		});
+
+		elem.querySelector("#validate").addEventListener("click",async function(){
+			var data: string = JSON.stringify(graph.serialize());
+			await api.send_graph_json(data);
+			alert('Wrong Graph!');
 		});
 
 	}
@@ -98,15 +136,22 @@ class pydanticGraphImpl implements pydanticGraph {
 			{
 				var file = e.dataTransfer.files[i];
 				var ext = LGraphCanvas.getFileExtension(file.name);
-				var reader = new FileReader();
-				if(ext == "json")
-				{
+				// uploading graph
+				if(ext == "json"){
+					var reader = new FileReader();
 					reader.onload = function(event) {
 						var data = JSON.parse( event.target.result as string );
 						that.graph.configure(data);
 					};
-					reader.readAsText(file);
 				}
+				// uploading new nodes
+				else if (ext == "py"){	
+					fetch('/parse_nodes', {
+						method: 'POST',
+						body:  file
+					  })
+				}
+				this.registerNodes();
 			}
 		}
 
@@ -116,7 +161,7 @@ class pydanticGraphImpl implements pydanticGraph {
         this.graph.start()
     }
 
-}
+};
 
 export const app = new pydanticGraphImpl(new Api()); 
 

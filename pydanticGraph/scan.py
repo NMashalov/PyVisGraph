@@ -6,10 +6,34 @@ from .node import model_to_node, Node
 from typing import Optional
 from pydantic import BaseModel
 from pathlib import Path
+from types import ModuleType
+from fastapi import UploadFile
 
 NODES: list[Optional[Node]] = []
 
-def load_custom_node(module_path, ignore=set()):
+def load_nodes_from_module(module: ModuleType):
+    global NODES
+    # add nodes to scope
+    def _check_defined_pydantic(x):
+        return inspect.isclass(x) and issubclass(x, BaseModel) and x.__module__ == module_name
+        
+    NEW_NODES = [
+        model_to_node(*cls) for cls 
+        in inspect.getmembers(module, _check_defined_pydantic) 
+    ]
+    NODES.extend(NEW_NODES)
+
+
+def load_nodes_from_file(file: UploadFile):
+    contents = file.file.read().decode('UTF-8')
+    name = file.filename or ''
+    # creates new module
+    module = ModuleType(name)
+    # populate the module with code
+    exec(contents, module.__dict__)
+    load_nodes_from_module(module)
+
+def load_nodes_from_local(module_path):
     """
     Load custom nodes to NODES VAR
     """
@@ -22,17 +46,7 @@ def load_custom_node(module_path, ignore=set()):
             module = importlib.util.module_from_spec(module_spec)
             module_spec.loader.exec_module(module)
 
-            global NODES
-            # add nodes to scope
-            def _check_defined_pydantic(x):
-                return inspect.isclass(x) and issubclass(x, BaseModel) and x.__module__ == module_name
-                
-            NEW_NODES = [
-                model_to_node(*cls) for cls in inspect.getmembers(module, _check_defined_pydantic) 
-            ]
-
-            NODES.extend(NEW_NODES)
-            return NEW_NODES
+            load_nodes_from_module(module)   
     except Exception as e:
         print(f"Cannot import {module_path} module for custom nodes:", e)
 

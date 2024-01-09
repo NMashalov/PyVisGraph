@@ -1,54 +1,42 @@
 from pydantic import BaseModel, Field
 from typing import ClassVar
-from pydanticGraph import Link
 
 class UploadCsv(BaseModel):
     OUTPUTS : ClassVar = [
-        Link(
-            name = 'Data',
-            type= 'csv' 
-        ),
+        ('Data','.csv',)
     ]
     source_name:str = 'S3'
 
 
 class Scoring(BaseModel):
+    """
+    Node for scoring
+    """
     INPUTS : ClassVar = [
-        Link(
-            name = 'Data',
-            type= 'csv' 
-        ),
-        Link(
-            name = 'Model',
-            type= 'pkl' 
-        ),
+        ('Data','.csv'),
+        ('Model','.pkl'),
     ]
+    OUTPUTS : ClassVar = [
+        ('Score','.csv',)
+    ]
+    threshold: int = Field(description='Score cut off. Below no credit :(')
+
+
+class LoadModel(BaseModel):
 
     OUTPUTS : ClassVar = [
-        Link(
-            name = 'Scores',
-            type= 'csv' 
-        ),
-    ]
-    threshold: int = 0
-
-class UploadScoresDB(BaseModel):
-    INPUTS : ClassVar = [
-        Link(
-            name = 'Scores',
-            type= 'csv' 
-        ),
-    ]
-    schema_name:str = 'Client_accepts'
-
-class UploadModel(BaseModel):
-    OUTPUTS : ClassVar = [
-        Link(
-            name = 'Model',
-            type= 'pkl' 
-        ),
+        ('Model','.pkl'),
     ]
     sink_name:str = 'S3'
-    bucket: str = 'models'
-    model_name: str = 'Credit_Cards'
+    bucket: str = 'risk_model'
 
+
+class UploadScoreToDB(BaseModel):
+    INPUTS : ClassVar = [
+        ('Score','.csv'),
+    ]
+    db: str = "Postgres"
+    table: str =  Field(
+        default="scores.credit_card_scores",
+        description='!Table should be written with previous schema SCHEMA.TABLE'
+    )

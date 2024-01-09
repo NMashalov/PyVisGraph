@@ -5,6 +5,7 @@ let NODE_PATH = 'nodes'
 export interface Property{
 	type: string;
     default_value?: string;
+    description?: string;
 }
 
 export interface Link{
@@ -17,6 +18,7 @@ export interface ModelSchema{
 	input?: Array<Link>;
 	output?: Array<Link>;
     properties?: { [name: string]: Property};
+    helper?: String
 }
 
 

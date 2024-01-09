@@ -37,11 +37,39 @@ export function modelToNode(model) {
             }
         }
         ;
+        this.size = this.computeSize();
     }
     ;
+    // add helper on hover
+    // it will written multiline as usual
+    if (model.helper || model.properties) {
+        CustomNode.prototype.onDrawBackground = function (ctx) {
+            if (this.mouseOver) {
+                ctx.fillStyle = "#AAA";
+                let diff = 14;
+                // display header if only we have it
+                if (model.helper) {
+                    var lines = model.helper.split('\n');
+                    for (var i = 0; i < lines.length; i++) {
+                        ctx.fillText(lines[i], 0, this.size[1] + diff);
+                        diff += 14;
+                    }
+                }
+                // display properties only if them have description
+                for (const [name, prop] of Object.entries(model.properties)) {
+                    if (prop.description) {
+                        ctx.fillText(`@${name}: ${prop.description}`, 0, this.size[1] + diff);
+                        diff += 14;
+                    }
+                }
+            }
+        };
+    }
     CustomNode.title = model.name;
     LiteGraph.registerNodeType(`custom/${CustomNode.title}`, CustomNode);
 }
+;
+;
 class pydanticGraphImpl {
     constructor(api) {
         _pydanticGraphImpl_instances.add(this);
@@ -65,15 +93,22 @@ class pydanticGraphImpl {
                 for (var i = 0; i < e.dataTransfer.files.length; ++i) {
                     var file = e.dataTransfer.files[i];
                     var ext = LGraphCanvas.getFileExtension(file.name);
-                    var reader = new FileReader();
+                    // uploading graph
                     if (ext == "json") {
+                        var reader = new FileReader();
                         reader.onload = function (event) {
                             var data = JSON.parse(event.target.result);
-                            console.log(reader.result);
                             that.graph.configure(data);
                         };
-                        reader.readAsText(file);
                     }
+                    // uploading new nodes
+                    else if (ext == "py") {
+                        fetch('/parse_nodes', {
+                            method: 'POST',
+                            body: file
+                        });
+                    }
+                    this.registerNodes();
                 }
             };
             __classPrivateFieldGet(this, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_set_download_button).call(this);
@@ -87,7 +122,8 @@ _pydanticGraphImpl_instances = new WeakSet(), _pydanticGraphImpl_load_graph = fu
     var elem = document.createElement("span");
     elem.id = "InstrumentPanel";
     elem.className = "selector";
-    elem.innerHTML = "<button class='btn' id='download'>Download</button>";
+    elem.innerHTML = ("<button class='btn' id='download'>Download</button>\
+			<button class='btn' id='validate'>Validate</button>");
     header.appendChild(elem);
     const graph = this.graph;
     const api = this.api;
@@ -97,5 +133,13 @@ _pydanticGraphImpl_instances = new WeakSet(), _pydanticGraphImpl_load_graph = fu
             yield api.send_graph_json(data);
         });
     });
+    elem.querySelector("#validate").addEventListener("click", function () {
+        return __awaiter(this, void 0, void 0, function* () {
+            var data = JSON.stringify(graph.serialize());
+            yield api.send_graph_json(data);
+            alert('Wrong Graph!');
+        });
+    });
 };
+;
 export const app = new pydanticGraphImpl(new Api());
