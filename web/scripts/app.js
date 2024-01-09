@@ -7,6 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+};
+var _pydanticGraphImpl_instances, _pydanticGraphImpl_load_graph, _pydanticGraphImpl_set_download_button;
 import { Api } from './api.js';
 // var LiteGraph = global.LiteGraph;
 export function modelToNode(model) {
@@ -38,47 +44,58 @@ export function modelToNode(model) {
 }
 class pydanticGraphImpl {
     constructor(api) {
+        _pydanticGraphImpl_instances.add(this);
         this.api = api;
         this.graph = new LGraph();
-        console.log(this.graph.serialize());
     }
     registerNodes() {
         return __awaiter(this, void 0, void 0, function* () {
             // Load node definitions from the backend
             yield this.api.fetchNodes()
-                .then(defs => defs.forEach((x, i) => modelToNode(x)));
+                .then(defs => defs === null || defs === void 0 ? void 0 : defs.forEach((x, i) => modelToNode(x), null)).catch(error => console.log('error is', error));
         });
     }
     ;
-    set_download_button() {
-        var header = document.getElementById("InstrumentHeader");
-        var elem = document.createElement("span");
-        elem.id = "InstrumentPanel";
-        elem.className = "selector";
-        elem.innerHTML = "<button class='btn' id='download'>Download</button>";
-        header.appendChild(elem);
-        const graph = this.graph;
-        elem.querySelector("#download").addEventListener("click", function () {
-            var data = JSON.stringify(graph.serialize());
-            var file = new Blob([data]);
-            var url = URL.createObjectURL(file);
-            var element = document.createElement("a");
-            element.setAttribute('href', url);
-            element.setAttribute('download', "graph.JSON");
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-            setTimeout(function () { URL.revokeObjectURL(url); }, 1000 * 60); //wait one minute to revoke url	
-        });
-    }
     setup() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.registerNodes();
             var canvas = new LGraphCanvas("#mycanvas", this.graph);
-            this.set_download_button();
+            canvas.onDropItem = function (e) {
+                var that = this;
+                for (var i = 0; i < e.dataTransfer.files.length; ++i) {
+                    var file = e.dataTransfer.files[i];
+                    var ext = LGraphCanvas.getFileExtension(file.name);
+                    var reader = new FileReader();
+                    if (ext == "json") {
+                        reader.onload = function (event) {
+                            var data = JSON.parse(event.target.result);
+                            console.log(reader.result);
+                            that.graph.configure(data);
+                        };
+                        reader.readAsText(file);
+                    }
+                }
+            };
+            __classPrivateFieldGet(this, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_set_download_button).call(this);
             this.graph.start();
         });
     }
 }
+_pydanticGraphImpl_instances = new WeakSet(), _pydanticGraphImpl_load_graph = function _pydanticGraphImpl_load_graph() {
+}, _pydanticGraphImpl_set_download_button = function _pydanticGraphImpl_set_download_button() {
+    var header = document.getElementById("InstrumentHeader");
+    var elem = document.createElement("span");
+    elem.id = "InstrumentPanel";
+    elem.className = "selector";
+    elem.innerHTML = "<button class='btn' id='download'>Download</button>";
+    header.appendChild(elem);
+    const graph = this.graph;
+    const api = this.api;
+    elem.querySelector("#download").addEventListener("click", function () {
+        return __awaiter(this, void 0, void 0, function* () {
+            var data = JSON.stringify(graph.serialize());
+            yield api.send_graph_json(data);
+        });
+    });
+};
 export const app = new pydanticGraphImpl(new Api());

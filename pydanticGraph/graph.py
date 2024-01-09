@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 '''
-Parse Graph
+Parse Graph to unified interior format
 
 
 '''

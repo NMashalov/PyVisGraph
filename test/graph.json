@@ -1,0 +1,36 @@
+{
+    "config": {},
+    "extra": {},
+    "groups": [],
+    "last_link_id": 0,
+    "last_node_id": 1,
+    "links": [],
+    "nodes": [
+        {
+            "flags": {},
+            "id": 1,
+            "mode": 0,
+            "order": 0,
+            "outputs": [
+                {
+                    "links": null,
+                    "name": "Data",
+                    "type": "csv"
+                }
+            ],
+            "pos": [
+                308,
+                166.3333339691162
+            ],
+            "properties": {
+                "source_name": "S3"
+            },
+            "size": {
+                "0": 210,
+                "1": 58
+            },
+            "type": "custom/UploadCsv"
+        }
+    ],
+    "version": 0.4
+}

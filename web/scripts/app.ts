@@ -36,7 +36,6 @@ export function modelToNode(model : ModelSchema)
 export interface pydanticGraph {
 	api: Api;
 	registerNodes(): void;
-	set_download_button(): void;
 	setup(): void;
 }
 
@@ -50,42 +49,40 @@ class pydanticGraphImpl implements pydanticGraph {
     constructor(api: Api) {
 		this.api = api;
 		this.graph = new LGraph();
-		console.log(this.graph.serialize())	
 	}
 
 
     async registerNodes() {
         // Load node definitions from the backend
         await this.api.fetchNodes()
-			.then(defs => defs.forEach(
-				(x,i) => modelToNode(x))
-			);
+			.then(defs => defs?.forEach(
+				(x,i) => modelToNode(x),null)
+			).catch(
+				error => console.log('error is', error)
+			)
+			;
     };
+	
+	#load_graph(){
+
+	}
 
 
-	set_download_button(){
+	#set_download_button(){
 		var header = document.getElementById("InstrumentHeader")
 
 		var elem = document.createElement("span");
 		elem.id = "InstrumentPanel";
 		elem.className = "selector";
 		elem.innerHTML = "<button class='btn' id='download'>Download</button>";
-		header.appendChild(elem)
+		header.appendChild(elem);
 
-		const graph = this.graph
+		const graph = this.graph;
+		const api = this.api;
 
-		elem.querySelector("#download").addEventListener("click",function(){
-			var data = JSON.stringify(graph.serialize() );
-			var file = new Blob( [ data ] );
-			var url = URL.createObjectURL( file );
-			var element = document.createElement("a");
-			element.setAttribute('href', url);
-			element.setAttribute('download', "graph.JSON" );
-			element.style.display = 'none';
-			document.body.appendChild(element);
-			element.click();
-			document.body.removeChild(element);
-			setTimeout( function(){ URL.revokeObjectURL( url ); }, 1000*60 ); //wait one minute to revoke url	
+		elem.querySelector("#download").addEventListener("click",async function(){
+			var data: string = JSON.stringify(graph.serialize());
+			await api.send_graph_json(data);
 		});
 
 	}
@@ -93,7 +90,29 @@ class pydanticGraphImpl implements pydanticGraph {
     async setup(){
         await this.registerNodes();
         var canvas = new LGraphCanvas("#mycanvas", this.graph);
-		this.set_download_button()
+
+		canvas.onDropItem = function(e)
+		{
+			var that = this;
+			for(var i = 0; i < e.dataTransfer.files.length; ++i)
+			{
+				var file = e.dataTransfer.files[i];
+				var ext = LGraphCanvas.getFileExtension(file.name);
+				var reader = new FileReader();
+				if(ext == "json")
+				{
+					reader.onload = function(event) {
+						var data = JSON.parse( event.target.result as string );
+						that.graph.configure(data);
+					};
+					reader.readAsText(file);
+				}
+			}
+		}
+
+
+
+		this.#set_download_button()
         this.graph.start()
     }
 
