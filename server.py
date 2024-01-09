@@ -17,5 +17,5 @@ def send_nodes():
 app.mount("", StaticFiles(directory="web", html=True), name="web")
 
 if __name__ == "__main__":
-    load_custom_node(PATH / 'test' / 'hello.py')
+    load_custom_node(PATH / 'test' / 'nodes.py')
     uvicorn.run(app)

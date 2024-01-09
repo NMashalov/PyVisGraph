@@ -4,11 +4,16 @@
 	<script type="text/javascript" src="./lib/litegraph.core.js"></script>
 </head>
 <body style='width:100%; height:100%'>
-<canvas id='mycanvas' width='1920' height='1080' style='border: 1px solid'></canvas>
-<script type="module">
-	import {app} from "./scripts/app.js";
-	await  app.setup();
-</script>
+<div id="main">
+	<div id='InstrumentHeader'class="header"></div>
+	<div class="content">
+		<canvas id='mycanvas' width='1920' height='1080' style='border: 1px solid'></canvas>
+		<script type="module">
+			import {app} from "./scripts/app.js";
+			await  app.setup();
+		</script>
+	</div>
+</div>
 
 </body>
 </html>
