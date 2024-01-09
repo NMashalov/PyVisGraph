@@ -3,11 +3,12 @@ Organizing [Pydantic](https://github.com/jagenjo/litegraph.js/tree/master) model
 
 ![Demo.jpg](assets/ui.png)
 
-Demo via (link)[nmashalov.github.io/Pydantic_litegraph/]
+Demo via [link](nmashalov.github.io/Pydantic_litegraph/)
 
 ## Quick start
 
 ```bash
+git clone https://github.com/NMashalov/Pydantic_litegraph # clone repo with git 
 poetry shell # creates virtual environment for project
 poetry install # install all dependencies
 python server.py # load example 
@@ -26,8 +27,6 @@ You can add your own model by just simple dropping of `.py` file with models.
 ![hint](assets/features/hint.png)
 
 ## Adding custom model
-
-
 For defining models you need only pydantic.
 
 ```python
@@ -55,8 +54,8 @@ class Scoring(BaseModel):
 ```
 
 Upload can be performed in several convenient way.
-- explicably 
-
+- explicitly define path
+- drop py file
 
 ## Configurate yaml of Graph 
 Can be configured with [`graph.conf.yaml`](graph.conf.yaml).
@@ -68,5 +67,6 @@ Under the hood of module is client-server with FastApi. This helps to couple Jav
 All modifications can be performed as simple as 
 
 ## References
+- [FastApi](https://fastapi.tiangolo.com/)
 - [Litegraph](https://github.com/jagenjo/litegraph.js/tree/master)
-- [Pydantic](https://github.com/jagenjo/litegraph.js/tree/master)
+- [Pydantic](https://docs.pydantic.dev/latest/)
