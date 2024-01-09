@@ -30,7 +30,7 @@ class Scoring(BaseModel):
             type= 'csv' 
         ),
     ]
-    threshold: int = Field(description='How sharp will be nails')
+    threshold: int = 0
 
 class UploadScoresDB(BaseModel):
     INPUTS : ClassVar = [

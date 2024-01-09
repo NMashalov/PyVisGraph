@@ -3,8 +3,8 @@ let API_PORT = "8000"
 let NODE_PATH = 'nodes'
 
 export interface Property{
-	name: string;
 	type: string;
+    default_value?: string;
 }
 
 export interface Link{
@@ -16,7 +16,7 @@ export interface ModelSchema{
     name: string;
 	input?: Array<Link>;
 	output?: Array<Link>;
-    properties?: Array<Property>;
+    properties?: { [name: string]: Property};
 }
 
 

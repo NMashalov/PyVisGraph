@@ -16,15 +16,15 @@ class Link(BaseModel):
     type: str 
 
 class Property(BaseModel):
-    name: str 
     type: str
-
+    default_value: Optional[str] = None
+ 
 class Node(BaseModel):
     name: str
     input: Optional[list[Link]] = None
     output: Optional[list[Link]] = None
     helper: Optional[str] = None
-    properties: Optional[list[Property]] = None
+    properties: Optional[dict[str,Property]] = None
 
 
 def model_to_node(name: str,model: BaseModel):
@@ -72,13 +72,14 @@ def model_to_node(name: str,model: BaseModel):
         input = getattr(model,'INPUTS',None),
         output = getattr(model,'OUTPUTS',None),
          # model.model_fields don't contain fields of ClassVar
-        properties=[
-            Property(
-                name = field_name,
-                type = str(field_info.annotation)
+        properties={
+            field_name: Property(
+                
+                type = str(field_info.annotation),
+                default_value=str(field_info.default or 0)
             )
             for field_name,field_info in model.model_fields.items()
-        ],
+        },
         # put docstring to helper
         helper=model.__doc__
     )

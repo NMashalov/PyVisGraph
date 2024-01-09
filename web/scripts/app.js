@@ -22,9 +22,13 @@ export function modelToNode(model) {
         }
         ;
         // register name
-        this.properties = Object.assign({}, model.properties);
         if (model.properties) {
-            model.properties.forEach((x, i) => this.addWidget("text", x.name, "", { property: x.name }));
+            this.properties = {};
+            for (const [name, prop] of Object.entries(model.properties)) {
+                const def_value = prop.default_value || '0';
+                this.properties[name] = def_value;
+                this.addWidget("text", name, def_value, { property: name });
+            }
         }
         ;
     }

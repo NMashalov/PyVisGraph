@@ -4,9 +4,6 @@ declare var LiteGraph, LGraph, LGraphCanvas;
 
 // var LiteGraph = global.LiteGraph;
 
-
-
-
 export function modelToNode(model : ModelSchema)
 {
 	function CustomNode(){
@@ -19,12 +16,15 @@ export function modelToNode(model : ModelSchema)
 			model.output.forEach((x,i) => this.addOutput(x.name,x.type));
 		};
 		// register name
-		this.properties = {
-			...model.properties
-		};
-
+		
 		if (model.properties){
-			model.properties.forEach((x,i) => this.addWidget("text",x.name,"", { property: x.name}));
+			this.properties = {}
+			
+			for (const [name, prop] of Object.entries(model.properties)){
+				const def_value = prop.default_value || '0'
+				this.properties[name] = def_value;
+				this.addWidget("text",name,def_value, { property: name})
+			}
 		};	
 	};
 
