@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pydantic-litegraph"
+name = "pydanticGraph"
 version = "0.1.0"
 description = ""
 authors = ["Nikita <n.mashalov@gmail.com>"]

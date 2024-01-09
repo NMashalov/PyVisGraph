@@ -2,6 +2,13 @@
 Organizing [Pydantic](https://github.com/jagenjo/litegraph.js/tree/master) models into graph with [Litegraph](https://github.com/jagenjo/litegraph.js/tree/master) interface.
 
 
+## Quick start
+
+```
+poetry shell # creates virtual environment for project
+poetry install # 
+```
+
 ## Functionality 
 - flexible organization nodes defined via pydantic models
 - transform graph to yaml and yaml to graph  
