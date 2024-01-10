@@ -1,194 +1,198 @@
-{
-    "config": {},
-    "extra": {},
-    "groups": [],
-    "last_link_id": 4,
-    "last_node_id": 5,
-    "links": [
-        [
-            1,
-            1,
-            0,
-            2,
-            0,
-            ".csv"
-        ],
-        [
-            2,
-            1,
-            0,
-            3,
-            0,
-            ".csv"
-        ],
-        [
-            3,
-            4,
-            0,
-            1,
-            1,
-            ".pkl"
-        ],
-        [
-            4,
-            5,
-            0,
-            1,
-            0,
-            ".csv"
-        ]
-    ],
-    "nodes": [
-        {
-            "flags": {},
-            "id": 2,
-            "inputs": [
-                {
-                    "link": 1,
-                    "name": "Score",
-                    "type": ".csv"
-                }
+{"body": {
+        "config": {},
+        "extra": {},
+        "groups": [],
+        "last_link_id": 4,
+        "last_node_id": 6,
+        "links": [
+            [
+                1,
+                1,
+                0,
+                2,
+                1,
+                ".pkl"
             ],
-            "mode": 0,
-            "order": 3,
-            "pos": [
-                831,
-                222.3333339691162
+            [
+                2,
+                3,
+                0,
+                2,
+                0,
+                ".csv"
             ],
-            "properties": {
-                "db": "Postgres",
-                "table": "scores.credit_card_scores"
-            },
-            "size": {
-                "0": 210,
-                "1": 82
-            },
-            "type": "custom/UploadScoreToDB"
-        },
-        {
-            "flags": {},
-            "id": 1,
-            "inputs": [
-                {
-                    "link": 4,
-                    "name": "Data",
-                    "type": ".csv"
+            [
+                3,
+                2,
+                0,
+                5,
+                0,
+                ".csv"
+            ],
+            [
+                4,
+                2,
+                0,
+                6,
+                0,
+                ".csv"
+            ]
+        ],
+        "nodes": [
+            {
+                "flags": {},
+                "id": 1,
+                "mode": 0,
+                "order": 0,
+                "outputs": [
+                    {
+                        "links": [
+                            1
+                        ],
+                        "name": "Model",
+                        "slot_index": 0,
+                        "type": ".pkl"
+                    }
+                ],
+                "pos": [
+                    386,
+                    488
+                ],
+                "properties": {
+                    "bucket": "risk_model",
+                    "sink_name": "S3"
                 },
-                {
-                    "link": 3,
-                    "name": "Model",
-                    "type": ".pkl"
-                }
-            ],
-            "mode": 0,
-            "order": 2,
-            "outputs": [
-                {
-                    "links": [
-                        1,
-                        2
-                    ],
-                    "name": "Score",
-                    "slot_index": 0,
-                    "type": ".csv"
-                }
-            ],
-            "pos": [
-                516,
-                165
-            ],
-            "properties": {
-                "threshold": "PydanticUndefined"
+                "size": {
+                    "0": 210,
+                    "1": 82
+                },
+                "type": "initial/LoadModel"
             },
-            "size": {
-                "0": 210,
-                "1": 78
+            {
+                "flags": {},
+                "id": 3,
+                "mode": 0,
+                "order": 1,
+                "outputs": [
+                    {
+                        "links": [
+                            2
+                        ],
+                        "name": "Data",
+                        "slot_index": 0,
+                        "type": ".csv"
+                    }
+                ],
+                "pos": [
+                    390,
+                    257
+                ],
+                "properties": {
+                    "source_name": "S3"
+                },
+                "size": {
+                    "0": 210,
+                    "1": 58
+                },
+                "type": "initial/UploadCsv"
             },
-            "type": "custom/Scoring"
-        },
-        {
-            "flags": {},
-            "id": 3,
-            "inputs": [
-                {
-                    "link": 2,
-                    "name": "Score",
-                    "type": ".csv"
-                }
-            ],
-            "mode": 0,
-            "order": 4,
-            "pos": [
-                836,
-                83
-            ],
-            "properties": {
-                "db": "Postgres",
-                "table": "scores.credit_card_scores"
+            {
+                "flags": {},
+                "id": 5,
+                "inputs": [
+                    {
+                        "link": 3,
+                        "name": "Score",
+                        "type": ".csv"
+                    }
+                ],
+                "mode": 0,
+                "order": 3,
+                "pos": [
+                    974,
+                    419
+                ],
+                "properties": {
+                    "db": "Postgres",
+                    "table": "scores.credit_card_scores"
+                },
+                "size": {
+                    "0": 210,
+                    "1": 82
+                },
+                "type": "initial/UploadScoreToDB"
             },
-            "size": {
-                "0": 210,
-                "1": 82
+            {
+                "flags": {},
+                "id": 2,
+                "inputs": [
+                    {
+                        "link": 2,
+                        "name": "Data",
+                        "type": ".csv"
+                    },
+                    {
+                        "link": 1,
+                        "name": "Model",
+                        "type": ".pkl"
+                    }
+                ],
+                "mode": 0,
+                "order": 2,
+                "outputs": [
+                    {
+                        "links": [
+                            3,
+                            4
+                        ],
+                        "name": "Score",
+                        "slot_index": 0,
+                        "type": ".csv"
+                    }
+                ],
+                "pos": [
+                    684,
+                    345
+                ],
+                "properties": {
+                    "threshold": "0"
+                },
+                "size": {
+                    "0": 210,
+                    "1": 78
+                },
+                "type": "initial/Scoring"
             },
-            "type": "custom/UploadScoreToDB"
-        },
-        {
-            "flags": {},
-            "id": 4,
-            "mode": 0,
-            "order": 0,
-            "outputs": [
-                {
-                    "links": [
-                        3
-                    ],
-                    "name": "Model",
-                    "slot_index": 0,
-                    "type": ".pkl"
-                }
-            ],
-            "pos": [
-                224,
-                242.3333339691162
-            ],
-            "properties": {
-                "bucket": "risk_model",
-                "sink_name": "S3"
-            },
-            "size": {
-                "0": 210,
-                "1": 82
-            },
-            "type": "custom/LoadModel"
-        },
-        {
-            "flags": {},
-            "id": 5,
-            "mode": 0,
-            "order": 1,
-            "outputs": [
-                {
-                    "links": [
-                        4
-                    ],
-                    "name": "Data",
-                    "slot_index": 0,
-                    "type": ".csv"
-                }
-            ],
-            "pos": [
-                215,
-                102
-            ],
-            "properties": {
-                "source_name": "S3"
-            },
-            "size": {
-                "0": 210,
-                "1": 58
-            },
-            "type": "custom/UploadCsv"
-        }
-    ],
-    "version": 0.4
+            {
+                "flags": {},
+                "id": 6,
+                "inputs": [
+                    {
+                        "link": 4,
+                        "name": "Score",
+                        "type": ".csv"
+                    }
+                ],
+                "mode": 0,
+                "order": 4,
+                "pos": [
+                    982,
+                    224
+                ],
+                "properties": {
+                    "db": "Postgres",
+                    "table": "scores.credit_card_scores"
+                },
+                "size": {
+                    "0": 210,
+                    "1": 82
+                },
+                "type": "initial/UploadScoreToDB"
+            }
+        ],
+        "version": 0.4
+    },
+    "headers": {
+        "Content-Type": "application/json"
+    }
 }
