@@ -4,7 +4,7 @@ declare var LiteGraph, LGraph, LGraphCanvas;
 
 // var LiteGraph = global.LiteGraph;
 
-export function modelToNode(model : ModelSchema)
+export function modelToNode(name: string, model : ModelSchema)
 {
 	function CustomNode(){
 		// register input
@@ -59,12 +59,11 @@ export function modelToNode(model : ModelSchema)
 
 	CustomNode.title = model.name;
 
-	LiteGraph.registerNodeType(`custom/${CustomNode.title}`,CustomNode)
+	LiteGraph.registerNodeType(`${name}/${CustomNode.title}`,CustomNode)
 };
 
 export interface pydanticGraph {
 	api: Api;
-	registerNodes(): void;
 	setup(): void;
 };
 
@@ -81,20 +80,17 @@ class pydanticGraphImpl implements pydanticGraph {
 	}
 
 
-    async registerNodes() {
+    async #registerNodes(name: string, promise: Promise<ModelSchema[]>) {
         // Load node definitions from the backend
-        await this.api.fetchNodes()
+        await promise
 			.then(defs => defs?.forEach(
-				(x,i) => modelToNode(x),null)
+				(x,i) => modelToNode(name,x),null)
 			).catch(
 				error => console.log('error is', error)
 			)
 			;
     };
 	
-	#load_graph(){
-
-	}
 
 
 	#set_download_button(){
@@ -126,7 +122,7 @@ class pydanticGraphImpl implements pydanticGraph {
 	}
 
     async setup(){
-        await this.registerNodes();
+        await this.#registerNodes('initial',this.api.fetchNodes());
         var canvas = new LGraphCanvas("#mycanvas", this.graph);
 
 		const that = this; 
@@ -147,19 +143,15 @@ class pydanticGraphImpl implements pydanticGraph {
 				}
 				// uploading new nodes
 				else if (ext == "py"){
-					const formData = new FormData();
-    				formData.append("file", file, file.name);
-					await fetch('/parse_nodes', {
-						method: 'POST',
-						body:  formData
-					  })
+					console.log()
+					that.#registerNodes(
+						file.name,
+						that.api.parseNodesFromFile(file)
+					);
 				}
-				await that.registerNodes();
+				
 			}
 		}
-
-
-
 		this.#set_download_button()
         this.graph.start()
     }

@@ -3,6 +3,7 @@ from pydantic._internal._model_construction import ModelMetaclass
 from abc import abstractmethod
 from typing import Optional
 import logging
+from pydantic_core._pydantic_core import PydanticUndefinedType
 
 links_ref = """
 Node can have multiple inputs and outputs.
@@ -11,36 +12,39 @@ Output of node can be used in multiple other nodes. One-to-Many
 Input, conversely, only handle one connection. Many-to-one
 """
 
+
 class Link(BaseModel):
-    name: str 
-    type: str 
+    name: str
+    type: str
+
 
 class Property(BaseModel):
     type: str
     default_value: Optional[str] = None
     description: Optional[str] = None
- 
+
+
 class Node(BaseModel):
     name: str
     input: Optional[list[Link]] = None
     output: Optional[list[Link]] = None
     helper: Optional[str] = None
-    properties: Optional[dict[str,Property]] = None
+    properties: Optional[dict[str, Property]] = None
 
 
-def model_to_node(name: str,model: BaseModel):
+def model_to_node(name: str, model: BaseModel):
     """
     Serialize pydantic model to JSON
     and sends to frontend to
-    Output consist of: 
-    - inputs 
+    Output consist of:
+    - inputs
         - name
         - type
     - outputs
-        - name 
+        - name
         - type
-    
-    should have modifiable 
+
+    should have modifiable
 
     Note than fields of different types can not be connected!
     Example:
@@ -51,57 +55,47 @@ def model_to_node(name: str,model: BaseModel):
        INPUTS : ClassVar = [
             Link(
                 name = 'Data',
-                type= 'csv' 
+                type= 'csv'
             ),
             Link(
                 name = 'Model',
-                type= 'csv' 
+                type= 'csv'
             ),
         ]
         OUTPUT : ClassVar = [
             Link(
                 name = 'Scores',
-                type= 'csv' 
+                type= 'csv'
             ),
         ]
     """
 
     get_links = lambda attribute_name: [
-        Link(name=item[0],type=item[1]) 
-        for item in getattr(model,attribute_name,[])
+        Link(name=item[0], type=item[1]) for item in getattr(model, attribute_name, [])
     ]
+
+    # unfortunately without default value
+    # pydantic will return internal type PydanticUndefinedType
+    # instead of null. I write small func to overcome this
+    replace_with_None = lambda x: None if isinstance(x, PydanticUndefinedType) else x
 
     doc = model.__doc__
     if doc:
         doc = doc.strip()
 
     return Node(
-        name = name,
-        input = get_links('INPUTS'),
-        output = get_links('OUTPUTS'),
-         # model.model_fields don't contain fields of ClassVar
+        name=name,
+        input=get_links("INPUTS"),
+        output=get_links("OUTPUTS"),
+        # model.model_fields don't contain fields of ClassVar
         properties={
             field_name: Property(
-                description = str(field_info.description or ''),
-                type = str(field_info.annotation),
-                default_value=str(field_info.default or 0)
+                description=str(field_info.description or ""),
+                type=str(field_info.annotation),
+                default_value=str(replace_with_None(field_info.default) or ''),
             )
-            for field_name,field_info in model.model_fields.items()
+            for field_name, field_info in model.model_fields.items()
         },
         # put docstring to helper
-        helper=doc
+        helper=doc,
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-

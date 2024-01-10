@@ -44,6 +44,23 @@ export class Api{
             }
         });
     }
+    async parseNodesFromFile(file){
+        const formData = new FormData();
+    	formData.append("file", file, file.name);
+        return  await fetch('/parse_nodes', {
+            method: 'POST',
+            body:  formData
+        }).then(response => {
+            if (response.ok) {
+                return response.json()
+            } 
+            else if(response.status === 404) {
+                return Promise.reject('error 404')   
+            }
+        },null)
+    }
+
+    
     async fetchNodes(){
         let data: Array<ModelSchema>  = await fetch('/nodes')
             .then(response => {

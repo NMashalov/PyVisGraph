@@ -12,10 +12,10 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _pydanticGraphImpl_instances, _pydanticGraphImpl_load_graph, _pydanticGraphImpl_set_download_button;
+var _pydanticGraphImpl_instances, _pydanticGraphImpl_registerNodes, _pydanticGraphImpl_set_download_button;
 import { Api } from './api.js';
 // var LiteGraph = global.LiteGraph;
-export function modelToNode(model) {
+export function modelToNode(name, model) {
     function CustomNode() {
         // register input
         if (model.input) {
@@ -66,7 +66,7 @@ export function modelToNode(model) {
         };
     }
     CustomNode.title = model.name;
-    LiteGraph.registerNodeType(`custom/${CustomNode.title}`, CustomNode);
+    LiteGraph.registerNodeType(`${name}/${CustomNode.title}`, CustomNode);
 }
 ;
 ;
@@ -76,17 +76,10 @@ class pydanticGraphImpl {
         this.api = api;
         this.graph = new LGraph();
     }
-    registerNodes() {
-        return __awaiter(this, void 0, void 0, function* () {
-            // Load node definitions from the backend
-            yield this.api.fetchNodes()
-                .then(defs => defs === null || defs === void 0 ? void 0 : defs.forEach((x, i) => modelToNode(x), null)).catch(error => console.log('error is', error));
-        });
-    }
     ;
     setup() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.registerNodes();
+            yield __classPrivateFieldGet(this, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_registerNodes).call(this, 'initial', this.api.fetchNodes());
             var canvas = new LGraphCanvas("#mycanvas", this.graph);
             const that = this;
             canvas.onDropItem = function (e) {
@@ -104,14 +97,8 @@ class pydanticGraphImpl {
                         }
                         // uploading new nodes
                         else if (ext == "py") {
-                            const formData = new FormData();
-                            formData.append("file", file, file.name);
-                            yield fetch('/parse_nodes', {
-                                method: 'POST',
-                                body: formData
-                            });
+                            __classPrivateFieldGet(that, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_registerNodes).call(that, file.name, that.api.parseNodesFromFile(file));
                         }
-                        yield that.registerNodes();
                     }
                 });
             };
@@ -120,7 +107,12 @@ class pydanticGraphImpl {
         });
     }
 }
-_pydanticGraphImpl_instances = new WeakSet(), _pydanticGraphImpl_load_graph = function _pydanticGraphImpl_load_graph() {
+_pydanticGraphImpl_instances = new WeakSet(), _pydanticGraphImpl_registerNodes = function _pydanticGraphImpl_registerNodes(name, promise) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // Load node definitions from the backend
+        yield promise
+            .then(defs => defs === null || defs === void 0 ? void 0 : defs.forEach((x, i) => modelToNode(name, x), null)).catch(error => console.log('error is', error));
+    });
 }, _pydanticGraphImpl_set_download_button = function _pydanticGraphImpl_set_download_button() {
     var header = document.getElementById("InstrumentHeader");
     var elem = document.createElement("span");

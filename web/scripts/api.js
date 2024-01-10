@@ -31,6 +31,23 @@ export class Api {
             });
         });
     }
+    parseNodesFromFile(file) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const formData = new FormData();
+            formData.append("file", file, file.name);
+            return yield fetch('/parse_nodes', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                else if (response.status === 404) {
+                    return Promise.reject('error 404');
+                }
+            }, null);
+        });
+    }
     fetchNodes() {
         return __awaiter(this, void 0, void 0, function* () {
             let data = yield fetch('/nodes')
