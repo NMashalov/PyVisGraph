@@ -5,13 +5,17 @@ Organizing [Pydantic](https://github.com/jagenjo/litegraph.js/tree/master) model
 
 Demo via [link](nmashalov.github.io/Pydantic_litegraph/)
 
-## Quick start
+## Quick start 🎈
+
+Prerequisites
+- Python 3.11
+- Poetry
 
 ```bash
 git clone https://github.com/NMashalov/Pydantic_litegraph # clone repo with git 
 poetry shell # creates virtual environment for project
 poetry install # install all dependencies
-python server.py # load example 
+python pydanticGraph # load example 
 ```
 
 You can add your own model by just simple dropping of `.py` file with models.
@@ -20,7 +24,7 @@ You can add your own model by just simple dropping of `.py` file with models.
 - flexible organization of nodes defined via pydantic models
 - transform LiteGraph linkage to Gitlab style aka `depends_on`
 
-### Features
+### Features 🧰
 - Use buttons `validate` and `download` for checking your workflow
 - New nodes can be added via dropping `.py` file to canvas.
 - Docstring and Pydantic fields description forms hint 
@@ -40,17 +44,17 @@ class Scoring(BaseModel):
         ('Data','.csv'),
         ('Model','.pkl'),
     ]
-    # first element in tuple names field in UI
+    # first element in tuple defines connection name in UI
     # second defines type
     # note that type should be equal to connect node
     OUTPUTS : ClassVar = [
-        ('Score','csv',)
+        ('Score','.csv',)
     ]
-    # all fields will be visualized as widgets
-    # for fast modification
+    # all fields will be visualized as interactive 
+    # widgets for fast modification
     # You can easily add comment to field by
-    # description argument in field 
-    threshold: int = Field(description='Score cut off. Below no credit :(')   
+    # description argument 
+    threshold: int = Field(description='Score cut-off. Below no credit :(')   
 ```
 
 Upload can be performed in several convenient way.

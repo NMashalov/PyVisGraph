@@ -66,8 +66,9 @@ def model_to_node(name: str,model: BaseModel):
         ]
     """
 
-    get_links = lambda atribute_name: [
-        Link(name=item[0],type=item[1]) for item in getattr(model,atribute_name,[])
+    get_links = lambda attribute_name: [
+        Link(name=item[0],type=item[1]) 
+        for item in getattr(model,attribute_name,[])
     ]
 
     doc = model.__doc__

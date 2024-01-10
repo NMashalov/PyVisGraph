@@ -129,9 +129,10 @@ class pydanticGraphImpl implements pydanticGraph {
         await this.registerNodes();
         var canvas = new LGraphCanvas("#mycanvas", this.graph);
 
-		canvas.onDropItem = function(e)
+		const that = this; 
+
+		canvas.onDropItem = async function(e)
 		{
-			var that = this;
 			for(var i = 0; i < e.dataTransfer.files.length; ++i)
 			{
 				var file = e.dataTransfer.files[i];
@@ -145,13 +146,15 @@ class pydanticGraphImpl implements pydanticGraph {
 					};
 				}
 				// uploading new nodes
-				else if (ext == "py"){	
-					fetch('/parse_nodes', {
+				else if (ext == "py"){
+					const formData = new FormData();
+    				formData.append("file", file, file.name);
+					await fetch('/parse_nodes', {
 						method: 'POST',
-						body:  file
+						body:  formData
 					  })
 				}
-				this.registerNodes();
+				await that.registerNodes();
 			}
 		}
 

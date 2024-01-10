@@ -9,13 +9,14 @@ from pydanticGraph import (
 from pathlib import Path
 import json 
 
-PATH = Path(__file__).parent
+PATH = Path(__file__).parent.parent
 
 app = FastAPI()
 
 @app.post('/parse_nodes')
-def parse_nodes(file :UploadFile):
-    load_nodes_from_file(file)
+async def parse_nodes(file :UploadFile):
+    await load_nodes_from_file(file)
+    #return NODES
 
 @app.get('/nodes')
 def send_nodes():
@@ -27,8 +28,9 @@ async def recieve_graph(graph: Request):
     print(json.loads(b))
     
 
-app.mount("", StaticFiles(directory="web", html=True), name="web")
+app.mount("", StaticFiles(directory=PATH  / "web", html=True), name="web")
 
-if __name__ == "__main__":
+
+def run():
     load_nodes_from_local(PATH / 'test' / 'nodes.py')
     uvicorn.run(app)

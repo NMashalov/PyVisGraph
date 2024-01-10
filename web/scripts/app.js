@@ -88,28 +88,32 @@ class pydanticGraphImpl {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.registerNodes();
             var canvas = new LGraphCanvas("#mycanvas", this.graph);
+            const that = this;
             canvas.onDropItem = function (e) {
-                var that = this;
-                for (var i = 0; i < e.dataTransfer.files.length; ++i) {
-                    var file = e.dataTransfer.files[i];
-                    var ext = LGraphCanvas.getFileExtension(file.name);
-                    // uploading graph
-                    if (ext == "json") {
-                        var reader = new FileReader();
-                        reader.onload = function (event) {
-                            var data = JSON.parse(event.target.result);
-                            that.graph.configure(data);
-                        };
+                return __awaiter(this, void 0, void 0, function* () {
+                    for (var i = 0; i < e.dataTransfer.files.length; ++i) {
+                        var file = e.dataTransfer.files[i];
+                        var ext = LGraphCanvas.getFileExtension(file.name);
+                        // uploading graph
+                        if (ext == "json") {
+                            var reader = new FileReader();
+                            reader.onload = function (event) {
+                                var data = JSON.parse(event.target.result);
+                                that.graph.configure(data);
+                            };
+                        }
+                        // uploading new nodes
+                        else if (ext == "py") {
+                            const formData = new FormData();
+                            formData.append("file", file, file.name);
+                            yield fetch('/parse_nodes', {
+                                method: 'POST',
+                                body: formData
+                            });
+                        }
+                        yield that.registerNodes();
                     }
-                    // uploading new nodes
-                    else if (ext == "py") {
-                        fetch('/parse_nodes', {
-                            method: 'POST',
-                            body: file
-                        });
-                    }
-                    this.registerNodes();
-                }
+                });
             };
             __classPrivateFieldGet(this, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_set_download_button).call(this);
             this.graph.start();
