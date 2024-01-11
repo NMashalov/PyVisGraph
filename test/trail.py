@@ -1,10 +1,8 @@
-from pydantic import (
-    create_model,
-    BaseModel,
-    Field
-)
+from pydantic import create_model, BaseModel, Field
 
 from typing import ClassVar
+
+
 class UploadCsv(BaseModel):
     OUTPUTS: ClassVar = [
         (
@@ -32,4 +30,5 @@ class Scoring(BaseModel):
     ]
     threshold: int = Field(description="Score cut off. Below no credit :(")
 
-{UploadCsv,Scoring}
+
+{UploadCsv, Scoring}

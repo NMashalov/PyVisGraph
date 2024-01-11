@@ -9,12 +9,12 @@ from pathlib import Path
 from types import ModuleType
 from fastapi import UploadFile
 
-_NODE_MODELS: dict[str,BaseModel] ={}
+_NODE_MODELS: dict[str, BaseModel] = {}
 
 
 def load_nodes_from_module(module: ModuleType, module_name: str):
-    global NODES
     # add nodes to scope
+    global _NODE_MODELS
 
     def _check_defined_pydantic(x):
         return (
@@ -28,10 +28,7 @@ def load_nodes_from_module(module: ModuleType, module_name: str):
         new_node = model_to_node(*cls)
         new_nodes.append(new_node)
         _NODE_MODELS[new_node.hash] = cls[1]
-    return {
-        "nodes": new_nodes,
-        "module_name": module_name
-    }
+    return {"nodes": new_nodes, "module_name": module_name}
 
 
 async def load_nodes_from_file(file: UploadFile):
@@ -44,9 +41,7 @@ async def load_nodes_from_file(file: UploadFile):
     return load_nodes_from_module(module, name)
 
 
-def load_nodes_from_local(
-        module_path: Path,
-        module_name: Optional[str] = None):
+def load_nodes_from_local(module_path: Path, module_name: Optional[str] = None):
     """
     Load custom nodes to NODES VAR
     """

@@ -1,11 +1,19 @@
 <html>
 <head>
 	<link rel="stylesheet" type="text/css" href="./lib/litegraph.css">
+	<link rel="stylesheet" type="text/css" href="./modal.css">
 	<script type="text/javascript" src="./lib/litegraph.core.js"></script>
 </head>
 <body style='width:100%; height:100%'>
 <div id="main">
-	<div id='InstrumentHeader'class="header"></div>
+	<div id='InstrumentHeader' class="header"></div>
+	<section class="modal hidden">
+		<form id="InputForm">
+		  <h3>Input fields</h3>
+		</form>
+		<button id='CloseModal' class="btn">Submit</button>
+	</section>
+	<div class="overlay hidden"></div>
 	<div class="content">
 		<canvas id='mycanvas' width='1920' height='1080' style='border: 1px solid'></canvas>
 		<script type="module">

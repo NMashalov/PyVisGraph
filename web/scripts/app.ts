@@ -6,7 +6,6 @@ declare var LiteGraph, LGraph, LGraphCanvas;
 
 function modelToNode(model : ModelSchema,name: string)
 {
-	console.log(model);
 	function CustomNode(){
 		// register input
 		if (model.input){
@@ -75,13 +74,13 @@ export interface pydanticGraph {
 class pydanticGraphImpl implements pydanticGraph {
 	api: Api;
 	graph: any;
-	dagName: string;
+	dagSettings: {[name: string]: string};
 
 
     constructor(api: Api) {
 		this.api = api;
 		this.graph = new LGraph();
-		this.dagName = 'Dummy'
+		this.dagSettings = {}
 	}
 
 
@@ -103,12 +102,49 @@ class pydanticGraphImpl implements pydanticGraph {
 	#return_graph(){
 		var data = {}
 		data['graph'] = this.graph.serialize();
-		data['dag_name'] = this.dagName;
+		data['dag_settings'] = this.dagSettings;
 		return data
 	}
 
+	async #set_modal(){
+		const modal = document.querySelector(".modal");
+		const overlay = document.querySelector(".overlay");
 
-	#set_header(){
+		modal.querySelector("#CloseModal").addEventListener("click", async ()=> {
+			modal.classList.add("hidden");
+			overlay.classList.add("hidden")
+			console.log(this.dagSettings)
+		});
+
+		this.dagSettings = await this.api.fetchDagSettings()
+
+		let form = modal.querySelector("#InputForm")
+
+		for (let [name, prop] of Object.entries(this.dagSettings)){
+			var input = document.createElement("input");
+			input.type = "text";
+			input.id= `input_form_${name}`;
+			// register prop in class settings
+			input.value = prop;
+
+			input.addEventListener('change',
+				(e: {target}) => {
+					this.dagSettings[name] = e.target.value;
+				}
+			)
+
+			var label = document.createElement("label"); 
+			label.textContent = name;
+			label.htmlFor= `input_form_${name}`;
+			form.appendChild(label);
+			form.appendChild(input);
+		}
+
+		return [modal, overlay]
+	}
+
+
+	async #set_header(){
 		var header = document.getElementById("InstrumentHeader")
 
 		var elem = document.createElement("span");
@@ -117,7 +153,7 @@ class pydanticGraphImpl implements pydanticGraph {
 		elem.innerHTML = (
 			"<button class='btn' id='download'>Download</button>\
 			<button class='btn' id='validate'>Validate</button>\
-			<input type='text' id='changeDagName' value='Enter Dag Name'>"
+			<button class='btn' id='DagSettings'>Dag settings</button>"
 		)
 		header.appendChild(elem);
 
@@ -134,19 +170,21 @@ class pydanticGraphImpl implements pydanticGraph {
 			element.click();
 			document.body.removeChild(element);
 		});
+		
 
 		elem.querySelector("#validate").addEventListener("click",async () => {
 			let data = this.#return_graph()
 			await this.api.send_graph_json(data);
 		});
 
+		const [modal,overlay] = await this.#set_modal()
 
-		elem.querySelector("#changeDagName").addEventListener("change", (e: Event & {
-			target: HTMLInputElement}) => {
-			console.log(e.target.value) 
-			this.dagName = e.target.value;
+
+		elem.querySelector("#DagSettings").addEventListener("click", async ()=> {
+			modal.classList.remove("hidden");
+			overlay.classList.remove("hidden")
+			
 		});
-
 	}
 
     async setup(){

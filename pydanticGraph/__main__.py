@@ -1,8 +1,5 @@
 import typer
-from pydanticGraph import (
-    run,
-    Config
-)
+from pydanticGraph import run, Config
 from enum import Enum
 import yaml  # type: ignore
 
@@ -20,19 +17,21 @@ python pydanticGraph/
 
 app = typer.Typer()
 
+
 class Example(str, Enum):
     simple = "simple"
     conv = "conv"
     lstm = "lstm"
 
+
 # add options to load custom file
 @app.command()
 def start_server(
     config: Annotated[Optional[Path], typer.Option()] = None,
-    network: Example = Example.simple
+    network: Example = Example.simple,
 ):
     if config is None:
-        print('Using default settings')
+        print("Using default settings")
     elif config.is_file():
         text = config.read_text()
         print(f"Config file contents: {text}")

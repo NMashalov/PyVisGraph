@@ -48,6 +48,9 @@ export class Api {
                     let j = yield response.json();
                     alert(j);
                 }
+                else if (response.status === 500) {
+                    alert('500 Server Error');
+                }
             }), null);
         });
     }
@@ -72,6 +75,20 @@ export class Api {
     fetchLocalNodes() {
         return __awaiter(this, void 0, void 0, function* () {
             let data = yield fetch('/local_nodes')
+                .then((response) => __awaiter(this, void 0, void 0, function* () {
+                if (response.ok) {
+                    return response.json();
+                }
+                else if (response.status === 404) {
+                    return Promise.reject('error 404');
+                }
+            }), null);
+            return data;
+        });
+    }
+    fetchDagSettings() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let data = yield fetch('/dag_fields')
                 .then((response) => __awaiter(this, void 0, void 0, function* () {
                 if (response.ok) {
                     return response.json();

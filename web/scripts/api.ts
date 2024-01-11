@@ -28,6 +28,7 @@ export interface LocalModuleSchema{
 }
 
 
+
 export class Api{
     url: string;
 
@@ -68,6 +69,9 @@ export class Api{
                 let j: [{}] = await response.json()
                 alert(j);
             }
+            else if (response.status === 500){
+                alert('500 Server Error')
+            }
         },null)
     };
     
@@ -100,6 +104,20 @@ export class Api{
             },null)
 
         return data 
+    }
+    
+    async fetchDagSettings(){
+        let data : { [name: string]: string} = await fetch('/dag_fields')
+            .then(async response => {
+                    if (response.ok) {
+                        return response.json()
+                    } 
+                    else if(response.status === 404) {
+                        return Promise.reject('error 404')   
+                    }
+            },null)
+
+        return data
     }
 }
 

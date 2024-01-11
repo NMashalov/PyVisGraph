@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from pydantic._internal._model_construction import ModelMetaclass
 from abc import abstractmethod
 from typing import Optional
 import logging
@@ -27,11 +26,11 @@ class Property(BaseModel):
 class Node(BaseModel):
     name: str
     hash: str
-    properties: dict[str, Property] 
+    properties: dict[str, Property]
     input: Optional[list[Link]] = None
     output: Optional[list[Link]] = None
     helper: Optional[str] = None
-    
+
 
 # you may add default properties to node
 DEFAULT_PROPERTIES: dict[str, Property] = {
@@ -95,7 +94,7 @@ def model_to_node(name: str, model: BaseModel):
 
     return Node(
         name=name,
-        hash = str(hash(model)),
+        hash=str(hash(model)),
         input=get_links(model, "INPUTS"),
         output=get_links(model, "OUTPUTS"),
         # model.model_fields don't contain fields of ClassVar

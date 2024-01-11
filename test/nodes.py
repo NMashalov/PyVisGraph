@@ -30,6 +30,16 @@ class Scoring(BaseModel):
     threshold: int = Field(description="Score cut off. Below no credit :(")
 
 
+class CheckModel(BaseModel):
+    INPUTS: ClassVar = [
+        ("Model", ".pkl"),
+    ]
+    OUTPUTS: ClassVar = [
+        ("Model", ".pkl"),
+    ]
+    test: str = "random"
+
+
 class LoadModel(BaseModel):
     OUTPUTS: ClassVar = [
         ("Model", ".pkl"),
