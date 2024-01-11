@@ -100,6 +100,12 @@ class pydanticGraphImpl implements pydanticGraph {
 			);
     };
 	
+	#return_graph(){
+		var data = {}
+		data['graph'] = this.graph.serialize();
+		data['dag_name'] = this.dagName;
+		return data
+	}
 
 
 	#set_header(){
@@ -116,10 +122,7 @@ class pydanticGraphImpl implements pydanticGraph {
 		header.appendChild(elem);
 
 		elem.querySelector("#download").addEventListener("click",async () => {
-			var data = {}
-			data['graph'] = this.graph.serialize();
-			data['dag_name'] = this.dagName;
- 
+			let data = this.#return_graph()
 			var response: string = await this.api.send_graph_json(data)
 			var file = new Blob( [ response ] );
 			var url = URL.createObjectURL(file);
@@ -133,9 +136,8 @@ class pydanticGraphImpl implements pydanticGraph {
 		});
 
 		elem.querySelector("#validate").addEventListener("click",async () => {
-			var data: string = JSON.stringify(this.graph.serialize());
+			let data = this.#return_graph()
 			await this.api.send_graph_json(data);
-			alert('Wrong Graph!');
 		});
 
 

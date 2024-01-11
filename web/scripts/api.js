@@ -28,14 +28,27 @@ export class Api {
                 headers: {
                     'Content-Type': 'application/json'
                 }
-            }).then(response => {
+            }).then((response) => __awaiter(this, void 0, void 0, function* () {
                 if (response.ok) {
+                    alert('ok');
                     return response.json();
                 }
                 else if (response.status === 404) {
                     return Promise.reject('error 404');
                 }
-            }, null);
+                else if (response.status === 418) {
+                    let j = JSON.parse(yield response.json());
+                    let alert_msg = '';
+                    j.forEach((el, i) => {
+                        alert_msg += `Error. Field ${el['loc']} has received msg ${el['msg']}\n`;
+                    });
+                    alert(alert_msg);
+                }
+                else if (response.status === 421) {
+                    let j = yield response.json();
+                    alert(j);
+                }
+            }), null);
         });
     }
     ;

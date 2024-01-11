@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, UploadFile
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 import uvicorn
 from pydanticGraph import (
     format_to_yaml_groups,
@@ -7,11 +8,14 @@ from pydanticGraph import (
     _NODE_MODELS,
     load_nodes_from_file,
     sequential_groups,
-    SETTING
+    SETTING,
+    validate_graph,
+    WrongGraphException
 )
 from pathlib import Path
 import json
 from contextlib import asynccontextmanager
+from pydantic import ValidationError
 
 PATH = Path(__file__).parent.parent
 
@@ -35,16 +39,29 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
+@app.exception_handler(WrongGraphException)
+async def wrong_graph_exception_handler(
+    request: Request,
+    exc: WrongGraphException
+):
+    return JSONResponse(
+        status_code=421,
+        content=str(exc)
+    )
+
+@app.exception_handler(ValidationError)
+async def pydantic_validation_exception_handler(
+    request: Request,
+    exc: ValidationError
+):
+    return JSONResponse(
+        status_code=418,
+        content=exc.json()
+    )
+
 @app.post("/parse_nodes")
 async def parse_nodes(file: UploadFile):
     return await load_nodes_from_file(file)
-
-@app.post("/validate_graph")
-async def validate_graph(graph: Request):
-    body: dict = json.loads(await graph.body())['body']
-    _, g = sequential_groups(body['graph'])
-    return validate_graph(g)
-
 
 @app.get("/local_nodes")
 def send_nodes(request: Request):
@@ -54,9 +71,10 @@ def send_nodes(request: Request):
 
 @app.post("/graphs")
 async def recieve_graph(graph: Request):
-    body: dict = json.loads(await graph.body())['body']
-    print(body)
+    body: dict = json.loads(await graph.body())['body'] 
+    print(body)   
     groupped_dag, g = sequential_groups(body['graph'])
+    validate_graph(g)
     yaml_output = format_to_yaml_groups(groupped_dag, g)
     print(yaml_output)
     return yaml_output

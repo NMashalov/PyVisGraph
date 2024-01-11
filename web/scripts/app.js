@@ -12,7 +12,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _pydanticGraphImpl_instances, _pydanticGraphImpl_registerNodes, _pydanticGraphImpl_set_header;
+var _pydanticGraphImpl_instances, _pydanticGraphImpl_registerNodes, _pydanticGraphImpl_return_graph, _pydanticGraphImpl_set_header;
 import { Api } from './api.js';
 // var LiteGraph = global.LiteGraph;
 function modelToNode(model, name) {
@@ -117,6 +117,11 @@ _pydanticGraphImpl_instances = new WeakSet(), _pydanticGraphImpl_registerNodes =
         yield promise
             .then(modules => modules.forEach((module, _) => module.nodes.forEach((x, _) => modelToNode(x, module.module_name))), null).catch(error => console.log('error is', error));
     });
+}, _pydanticGraphImpl_return_graph = function _pydanticGraphImpl_return_graph() {
+    var data = {};
+    data['graph'] = this.graph.serialize();
+    data['dag_name'] = this.dagName;
+    return data;
 }, _pydanticGraphImpl_set_header = function _pydanticGraphImpl_set_header() {
     var header = document.getElementById("InstrumentHeader");
     var elem = document.createElement("span");
@@ -127,9 +132,7 @@ _pydanticGraphImpl_instances = new WeakSet(), _pydanticGraphImpl_registerNodes =
 			<input type='text' id='changeDagName' value='Enter Dag Name'>");
     header.appendChild(elem);
     elem.querySelector("#download").addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
-        var data = {};
-        data['graph'] = this.graph.serialize();
-        data['dag_name'] = this.dagName;
+        let data = __classPrivateFieldGet(this, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_return_graph).call(this);
         var response = yield this.api.send_graph_json(data);
         var file = new Blob([response]);
         var url = URL.createObjectURL(file);
@@ -142,9 +145,8 @@ _pydanticGraphImpl_instances = new WeakSet(), _pydanticGraphImpl_registerNodes =
         document.body.removeChild(element);
     }));
     elem.querySelector("#validate").addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
-        var data = JSON.stringify(this.graph.serialize());
+        let data = __classPrivateFieldGet(this, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_return_graph).call(this);
         yield this.api.send_graph_json(data);
-        alert('Wrong Graph!');
     }));
     elem.querySelector("#changeDagName").addEventListener("change", (e) => {
         console.log(e.target.value);

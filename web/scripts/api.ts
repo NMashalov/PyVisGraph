@@ -48,12 +48,25 @@ export class Api{
             headers: {
             'Content-Type': 'application/json'
             }
-        }).then(response => {
+        }).then(async response => {
             if (response.ok) {
+                alert('ok')
                 return response.json()
             } 
             else if(response.status === 404) {
                 return Promise.reject('error 404')   
+            }
+            else if (response.status === 418){
+                let j: [{}] = JSON.parse(await response.json())
+                let alert_msg = ''
+                j.forEach((el,i)=>{
+                    alert_msg += `Error. Field ${el['loc']} has received msg ${el['msg']}\n`
+                })
+                alert(alert_msg);
+            }
+            else if (response.status === 421){
+                let j: [{}] = await response.json()
+                alert(j);
             }
         },null)
     };

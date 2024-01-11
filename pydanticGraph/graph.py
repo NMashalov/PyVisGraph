@@ -39,6 +39,8 @@ class Dag(BaseModel):
     graph: Graph
     dag_info: DagInfo
 
+class WrongGraphException(Exception):
+    pass
 
 def sequential_groups(model: dict):
     """
@@ -65,7 +67,7 @@ def sequential_groups(model: dict):
 
         return groupped_dag, g
     else:
-        return 'invalid input'
+        raise WrongGraphException('Graph should have edges')
     
 
 

@@ -10,5 +10,4 @@ def validate_graph(g:Graph):
             hash_key = props.pop('hash')
             if props:             
                 _NODE_MODELS[hash_key](**props)  # type: ignore
-    return True
             
