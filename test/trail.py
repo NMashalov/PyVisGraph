@@ -1,17 +1,35 @@
 from pydantic import (
     create_model,
-    BaseModel
+    BaseModel,
+    Field
 )
 
-class SettingsClass(BaseModel):
-    name: str
+from typing import ClassVar
+class UploadCsv(BaseModel):
+    OUTPUTS: ClassVar = [
+        (
+            "Data",
+            ".csv",
+        )
+    ]
+    source_name: str = "S3"
 
-def _register_new_model():
-    global SettingsClass
-    SettingsClass = create_model(
-        'DynamicFoobarModel', timetable = (str,...)
-    )
 
-print(SettingsClass(name='nikita'))
-_register_new_model()
-print(SettingsClass(name='nikita'))
+class Scoring(BaseModel):
+    """
+    Node for scoring
+    """
+
+    INPUTS: ClassVar = [
+        ("Data", ".csv"),
+        ("Model", ".pkl"),
+    ]
+    OUTPUTS: ClassVar = [
+        (
+            "Score",
+            ".csv",
+        )
+    ]
+    threshold: int = Field(description="Score cut off. Below no credit :(")
+
+{UploadCsv,Scoring}

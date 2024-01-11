@@ -17,7 +17,7 @@ export class Api {
     }
     send_graph_json(graph_json) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield fetch('/graphs', {
+            return yield fetch('/graphs', {
                 method: 'POST', // или 'PUT'
                 body: JSON.stringify({
                     body: graph_json, // данные могут быть 'строкой' или {объектом}!
@@ -28,9 +28,17 @@ export class Api {
                 headers: {
                     'Content-Type': 'application/json'
                 }
-            });
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                else if (response.status === 404) {
+                    return Promise.reject('error 404');
+                }
+            }, null);
         });
     }
+    ;
     parseNodesFromFile(file) {
         return __awaiter(this, void 0, void 0, function* () {
             const formData = new FormData();
@@ -48,17 +56,17 @@ export class Api {
             }, null);
         });
     }
-    fetchNodes() {
+    fetchLocalNodes() {
         return __awaiter(this, void 0, void 0, function* () {
-            let data = yield fetch('/nodes')
-                .then(response => {
+            let data = yield fetch('/local_nodes')
+                .then((response) => __awaiter(this, void 0, void 0, function* () {
                 if (response.ok) {
                     return response.json();
                 }
                 else if (response.status === 404) {
                     return Promise.reject('error 404');
                 }
-            }, null);
+            }), null);
             return data;
         });
     }

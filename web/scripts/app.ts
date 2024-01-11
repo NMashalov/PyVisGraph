@@ -1,11 +1,12 @@
-import {Api, ModelSchema} from './api.js'
+import {Api, ModelSchema,LocalModuleSchema} from './api.js'
 
 declare var LiteGraph, LGraph, LGraphCanvas;
 
 // var LiteGraph = global.LiteGraph;
 
-export function modelToNode(name: string, model : ModelSchema)
+function modelToNode(model : ModelSchema,name: string)
 {
+	console.log(model);
 	function CustomNode(){
 		// register input
 		if (model.input){
@@ -27,6 +28,7 @@ export function modelToNode(name: string, model : ModelSchema)
 			}
 		};	
 
+		this.properties['hash'] = model.hash;
 		this.size = this.computeSize();	
 	};
 
@@ -58,6 +60,7 @@ export function modelToNode(name: string, model : ModelSchema)
 	
 
 	CustomNode.title = model.name;
+	
 
 	LiteGraph.registerNodeType(`${name}/${CustomNode.title}`,CustomNode)
 };
@@ -72,28 +75,34 @@ export interface pydanticGraph {
 class pydanticGraphImpl implements pydanticGraph {
 	api: Api;
 	graph: any;
+	dagName: string;
 
 
     constructor(api: Api) {
 		this.api = api;
 		this.graph = new LGraph();
+		this.dagName = 'Dummy'
 	}
 
 
-    async #registerNodes(name: string, promise: Promise<ModelSchema[]>) {
+    async #registerNodes(promise: Promise<Array<LocalModuleSchema>>) {
         // Load node definitions from the backend
         await promise
-			.then(defs => defs?.forEach(
-				(x,i) => modelToNode(name,x),null)
+			.then(
+				modules => 
+				modules.forEach(
+					(module,_) =>
+					module.nodes.forEach((x,_) => modelToNode(x,module.module_name))
+				),
+				null
 			).catch(
 				error => console.log('error is', error)
-			)
-			;
+			);
     };
 	
 
 
-	#set_download_button(){
+	#set_header(){
 		var header = document.getElementById("InstrumentHeader")
 
 		var elem = document.createElement("span");
@@ -101,28 +110,45 @@ class pydanticGraphImpl implements pydanticGraph {
 		elem.className = "selector";
 		elem.innerHTML = (
 			"<button class='btn' id='download'>Download</button>\
-			<button class='btn' id='validate'>Validate</button>"
+			<button class='btn' id='validate'>Validate</button>\
+			<input type='text' id='changeDagName' value='Enter Dag Name'>"
 		)
 		header.appendChild(elem);
 
-		const graph = this.graph;
-		const api = this.api;
-
-		elem.querySelector("#download").addEventListener("click",async function(){
-			var data: string = JSON.stringify(graph.serialize());
-			await api.send_graph_json(data);
+		elem.querySelector("#download").addEventListener("click",async () => {
+			var data = {}
+			data['graph'] = this.graph.serialize();
+			data['dag_name'] = this.dagName;
+ 
+			var response: string = await this.api.send_graph_json(data)
+			var file = new Blob( [ response ] );
+			var url = URL.createObjectURL(file);
+			var element = document.createElement("a");
+			element.setAttribute('href', url);
+			element.setAttribute('download', "graph.yaml");
+			element.style.display = 'none';
+			document.body.appendChild(element);
+			element.click();
+			document.body.removeChild(element);
 		});
 
-		elem.querySelector("#validate").addEventListener("click",async function(){
-			var data: string = JSON.stringify(graph.serialize());
-			await api.send_graph_json(data);
+		elem.querySelector("#validate").addEventListener("click",async () => {
+			var data: string = JSON.stringify(this.graph.serialize());
+			await this.api.send_graph_json(data);
 			alert('Wrong Graph!');
+		});
+
+
+		elem.querySelector("#changeDagName").addEventListener("change", (e: Event & {
+			target: HTMLInputElement}) => {
+			console.log(e.target.value) 
+			this.dagName = e.target.value;
 		});
 
 	}
 
     async setup(){
-        await this.#registerNodes('initial',this.api.fetchNodes());
+        await this.#registerNodes(this.api.fetchLocalNodes());
         var canvas = new LGraphCanvas("#mycanvas", this.graph);
 
 		const that = this; 
@@ -145,14 +171,13 @@ class pydanticGraphImpl implements pydanticGraph {
 				else if (ext == "py"){
 					console.log()
 					that.#registerNodes(
-						file.name,
 						that.api.parseNodesFromFile(file)
 					);
 				}
 				
 			}
 		}
-		this.#set_download_button()
+		this.#set_header()
         this.graph.start()
     }
 

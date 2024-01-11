@@ -1,52 +1,72 @@
-from pydantic import BaseModel
+from pydantic import (
+    create_model,
+    BaseModel
+)
 from typing import Optional
-import json
-
-# import networkx
+import networkx as nx  # type: ignore
 
 """
 Parse Graph to unified interior format
 
 
 """
-LITEGRAPH_NAME_MAPPING: dict[str, str] = {"type": "model_name", "outputs": "needs"}
-
-
-class Inputs(BaseModel):
-    links: list[int]
+class Outputs(BaseModel):
+    links: Optional[list[int]] = None
     type: str
 
-
-class Element(BaseModel):
+class Node(BaseModel):
+    id: int
     type: str
-    inputs: Optional[list[Inputs]] = None
-    properties: Optional[dict[str, str]] = None
-
+    outputs: Optional[list[Outputs]] = None
+    title: Optional[str] = None
+    properties: dict[str, str] = {}
 
 class Graph(BaseModel):
-    nodes: Optional[list[Element]] = None
+    nodes: Optional[list[Node]] = None
+    links: Optional[list[list]] = None
+
+class DagInfo(BaseModel):
+    name: str
+    schedule: str
+
+def _overrideDagInfo():
+    global SettingsClass
+    SettingsClass = create_model(
+        'DynamicFoobarModel', timetable = (str,...)
+    )
+
+class Dag(BaseModel):
+    graph: Graph
+    dag_info: DagInfo
 
 
-def to_sequential(j: str | dict):
+def sequential_groups(model: dict):
     """
-    In that format all
-
-    Such format is beneficial for schedulers
-    like Airflow or Gitlab CI, because they grab
-    results of previous actions
-
-    Algorithm is simple.
-    Collect all nodes. Take only outputs and collect
-    nx.DiGraph.
-
-    Perform topological sort over nodes
+    Validate and format in sequential parallel group for parallel DAG execution
+    using nx.topological_generations(DG)
     """
+    g = Graph(**model)
+    links = g.links
+    nodes = g.nodes
 
-    if isinstance(j, str):
-        model: dict = json.loads(j)
-    elif isinstance(j, dict):
-        model = j
+    if nodes and links:
+        take_ids = lambda x: (links[x - 1][1], links[x - 1][3])
+        linkage = [
+            take_ids(link)
+            for node in nodes
+            if node.outputs is not None
+            for output in node.outputs
+            if output.links is not None
+            for link in output.links
+        ]
+
+        DG = nx.DiGraph(linkage)
+        groupped_dag = [sorted(generation) for generation in nx.topological_generations(DG)]
+
+        return groupped_dag, g
     else:
-        raise Exception("Inappropriate Format")
+        return 'invalid input'
+    
 
-    return Graph(**model)
+
+    

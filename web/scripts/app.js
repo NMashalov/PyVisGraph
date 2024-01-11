@@ -12,10 +12,11 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _pydanticGraphImpl_instances, _pydanticGraphImpl_registerNodes, _pydanticGraphImpl_set_download_button;
+var _pydanticGraphImpl_instances, _pydanticGraphImpl_registerNodes, _pydanticGraphImpl_set_header;
 import { Api } from './api.js';
 // var LiteGraph = global.LiteGraph;
-export function modelToNode(name, model) {
+function modelToNode(model, name) {
+    console.log(model);
     function CustomNode() {
         // register input
         if (model.input) {
@@ -37,6 +38,7 @@ export function modelToNode(name, model) {
             }
         }
         ;
+        this.properties['hash'] = model.hash;
         this.size = this.computeSize();
     }
     ;
@@ -75,11 +77,12 @@ class pydanticGraphImpl {
         _pydanticGraphImpl_instances.add(this);
         this.api = api;
         this.graph = new LGraph();
+        this.dagName = 'Dummy';
     }
     ;
     setup() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield __classPrivateFieldGet(this, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_registerNodes).call(this, 'initial', this.api.fetchNodes());
+            yield __classPrivateFieldGet(this, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_registerNodes).call(this, this.api.fetchLocalNodes());
             var canvas = new LGraphCanvas("#mycanvas", this.graph);
             const that = this;
             canvas.onDropItem = function (e) {
@@ -97,44 +100,55 @@ class pydanticGraphImpl {
                         }
                         // uploading new nodes
                         else if (ext == "py") {
-                            __classPrivateFieldGet(that, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_registerNodes).call(that, file.name, that.api.parseNodesFromFile(file));
+                            console.log();
+                            __classPrivateFieldGet(that, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_registerNodes).call(that, that.api.parseNodesFromFile(file));
                         }
                     }
                 });
             };
-            __classPrivateFieldGet(this, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_set_download_button).call(this);
+            __classPrivateFieldGet(this, _pydanticGraphImpl_instances, "m", _pydanticGraphImpl_set_header).call(this);
             this.graph.start();
         });
     }
 }
-_pydanticGraphImpl_instances = new WeakSet(), _pydanticGraphImpl_registerNodes = function _pydanticGraphImpl_registerNodes(name, promise) {
+_pydanticGraphImpl_instances = new WeakSet(), _pydanticGraphImpl_registerNodes = function _pydanticGraphImpl_registerNodes(promise) {
     return __awaiter(this, void 0, void 0, function* () {
         // Load node definitions from the backend
         yield promise
-            .then(defs => defs === null || defs === void 0 ? void 0 : defs.forEach((x, i) => modelToNode(name, x), null)).catch(error => console.log('error is', error));
+            .then(modules => modules.forEach((module, _) => module.nodes.forEach((x, _) => modelToNode(x, module.module_name))), null).catch(error => console.log('error is', error));
     });
-}, _pydanticGraphImpl_set_download_button = function _pydanticGraphImpl_set_download_button() {
+}, _pydanticGraphImpl_set_header = function _pydanticGraphImpl_set_header() {
     var header = document.getElementById("InstrumentHeader");
     var elem = document.createElement("span");
     elem.id = "InstrumentPanel";
     elem.className = "selector";
     elem.innerHTML = ("<button class='btn' id='download'>Download</button>\
-			<button class='btn' id='validate'>Validate</button>");
+			<button class='btn' id='validate'>Validate</button>\
+			<input type='text' id='changeDagName' value='Enter Dag Name'>");
     header.appendChild(elem);
-    const graph = this.graph;
-    const api = this.api;
-    elem.querySelector("#download").addEventListener("click", function () {
-        return __awaiter(this, void 0, void 0, function* () {
-            var data = JSON.stringify(graph.serialize());
-            yield api.send_graph_json(data);
-        });
-    });
-    elem.querySelector("#validate").addEventListener("click", function () {
-        return __awaiter(this, void 0, void 0, function* () {
-            var data = JSON.stringify(graph.serialize());
-            yield api.send_graph_json(data);
-            alert('Wrong Graph!');
-        });
+    elem.querySelector("#download").addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
+        var data = {};
+        data['graph'] = this.graph.serialize();
+        data['dag_name'] = this.dagName;
+        var response = yield this.api.send_graph_json(data);
+        var file = new Blob([response]);
+        var url = URL.createObjectURL(file);
+        var element = document.createElement("a");
+        element.setAttribute('href', url);
+        element.setAttribute('download', "graph.yaml");
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }));
+    elem.querySelector("#validate").addEventListener("click", () => __awaiter(this, void 0, void 0, function* () {
+        var data = JSON.stringify(this.graph.serialize());
+        yield this.api.send_graph_json(data);
+        alert('Wrong Graph!');
+    }));
+    elem.querySelector("#changeDagName").addEventListener("change", (e) => {
+        console.log(e.target.value);
+        this.dagName = e.target.value;
     });
 };
 ;

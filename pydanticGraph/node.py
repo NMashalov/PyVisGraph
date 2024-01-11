@@ -26,10 +26,20 @@ class Property(BaseModel):
 
 class Node(BaseModel):
     name: str
+    hash: str
+    properties: dict[str, Property] 
     input: Optional[list[Link]] = None
     output: Optional[list[Link]] = None
     helper: Optional[str] = None
-    properties: Optional[dict[str, Property]] = None
+    
+
+# you may add default properties to node
+DEFAULT_PROPERTIES: dict[str, Property] = {
+    # 'NAME': Property(
+    #     type=str(str),
+    #     default_value='Enter Name',
+    # )
+}
 
 
 def model_to_node(name: str, model: BaseModel):
@@ -70,7 +80,7 @@ def model_to_node(name: str, model: BaseModel):
         ]
     """
 
-    get_links = lambda attribute_name: [
+    get_links = lambda model, attribute_name: [
         Link(name=item[0], type=item[1]) for item in getattr(model, attribute_name, [])
     ]
 
@@ -85,17 +95,19 @@ def model_to_node(name: str, model: BaseModel):
 
     return Node(
         name=name,
-        input=get_links("INPUTS"),
-        output=get_links("OUTPUTS"),
+        hash = str(hash(model)),
+        input=get_links(model, "INPUTS"),
+        output=get_links(model, "OUTPUTS"),
         # model.model_fields don't contain fields of ClassVar
         properties={
             field_name: Property(
                 description=str(field_info.description or ""),
                 type=str(field_info.annotation),
-                default_value=str(replace_with_None(field_info.default) or ''),
+                default_value=str(replace_with_None(field_info.default) or ""),
             )
             for field_name, field_info in model.model_fields.items()
-        },
+        }
+        | DEFAULT_PROPERTIES,
         # put docstring to helper
         helper=doc,
     )
