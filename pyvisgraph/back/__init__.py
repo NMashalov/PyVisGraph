@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 import uvicorn
-from pydanticGraph import (
+from pyvisgraph import (
     format_dag_to_groups,
     load_nodes_from_local,
     _NODE_MODELS,
@@ -10,7 +10,7 @@ from pydanticGraph import (
     SETTINGS,
     validate_graph,
     WrongGraphException,
-    Dag
+    Dag,
 )
 from pathlib import Path
 import json
@@ -34,35 +34,35 @@ async def lifespan(app: FastAPI):
     del local_nodes
 
 
-app = FastAPI(lifespan=lifespan)
+server = FastAPI(lifespan=lifespan)
 
 
-@app.exception_handler(WrongGraphException)
+@server.exception_handler(WrongGraphException)
 async def wrong_graph_exception_handler(request: Request, exc: WrongGraphException):
     return JSONResponse(status_code=421, content=str(exc))
 
 
-@app.exception_handler(ValidationError)
+@server.exception_handler(ValidationError)
 async def pydantic_validation_exception_handler(request: Request, exc: ValidationError):
     return JSONResponse(status_code=418, content=exc.json())
 
 
-@app.get("/dag_fields")
+@server.get("/dag_fields")
 async def send_dag_fields():
     return SETTINGS.dag_settings
 
 
-@app.post("/parse_nodes")
+@server.post("/parse_nodes")
 async def parse_nodes(file: UploadFile):
     return await load_nodes_from_file(file)
 
 
-@app.get("/local_nodes")
+@server.get("/local_nodes")
 def send_nodes(request: Request):
     return request.app.state.local_nodes
 
 
-@app.post("/graphs")
+@server.post("/graphs")
 async def recieve_graph(graph: Request):
     body: dict = json.loads(await graph.body())["body"]
     g = Dag(**body)
@@ -73,8 +73,6 @@ async def recieve_graph(graph: Request):
     return yaml_output
 
 
-app.mount("", StaticFiles(directory=PATH / "web", html=True), name="web")
+server.mount("", StaticFiles(directory=PATH / "web", html=True), name="web")
 
-
-def run():
-    uvicorn.run(app)
+  

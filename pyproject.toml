@@ -25,7 +25,7 @@ black = "^23.12.1"
 matplotlib = "^3.8.2"
 
 [tool.poetry.scripts]
-start = '.my_module:my_function'
+start = 'pyvisgraph:my_function'
 
 
 [build-system]

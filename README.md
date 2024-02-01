@@ -1,5 +1,5 @@
-# PydanticGraph
-Organizing [Pydantic](https://github.com/jagenjo/litegraph.js/tree/master) models into graph with [Litegraph](https://github.com/jagenjo/litegraph.js/tree/master) interface.
+# PyVisGraph
+Tool for organizing python models [Pydantic](https://github.com/jagenjo/litegraph.js/tree/master) in Directed Acyclic Graphs using [Litegraph](https://github.com/jagenjo/litegraph.js/tree/master) interface.
 
 ![Demo.jpg](assets/ui.png)
 

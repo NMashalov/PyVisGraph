@@ -1,11 +1,14 @@
 import typer
-from pydanticGraph import run, Config
+from pyvisgraph import run, Config
 from enum import Enum
 import yaml  # type: ignore
+
+import webbrowser
 
 from pathlib import Path
 from typing import Optional
 from typing_extensions import Annotated
+from .server import server
 
 """
 Allows to easily work with cli
@@ -18,18 +21,14 @@ python pydanticGraph/
 app = typer.Typer()
 
 
-class Example(str, Enum):
-    simple = "simple"
-    conv = "conv"
-    lstm = "lstm"
-
-
 # add options to load custom file
 @app.command()
-def start_server(
+def start(
     config: Annotated[Optional[Path], typer.Option()] = None,
-    network: Example = Example.simple,
 ):
+    '''
+    Provide to config
+    '''
     if config is None:
         print("Using default settings")
     elif config.is_file():
@@ -42,7 +41,7 @@ def start_server(
         print("The config doesn't exist")
         raise typer.Abort()
     run()
-
+    webbrowser.open('http:/127.0.0.1', new=2)
 
 if __name__ == "__main__":
     app()

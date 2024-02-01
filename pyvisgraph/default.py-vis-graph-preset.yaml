@@ -1,0 +1,26 @@
+preset:
+  default_graph_settings:
+    name: MyDag 
+    group_name: "group"
+    task_name: "task"
+    properties:
+      schedule: '0 * * * *'
+  yaml_settings:
+    mode: groupped
+    dependency_name: needs
+    graph_info:
+      - 
+      -
+      -
+    
+  import_paths:
+    - module_name: scoring
+      import_paths: ./test/nodes.py
+    - module_name: scoring
+      import_paths: ./test/nodes.py
+
+    
+
+
+
+

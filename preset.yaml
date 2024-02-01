@@ -1,7 +1,0 @@
-dag_fields:
-  dag_name: MyDag # you can enter name of dag
-  flavor: cpu # you can base flavour
-  schedule: '0 * * * *' # you can enter schedule
-
-yaml_info:
-  dependency_name: needs 
