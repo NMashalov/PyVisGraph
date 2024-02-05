@@ -26,10 +26,10 @@ class OutputSettings(BaseModel):
 class DefaultGraphSettings(BaseModel):
     name: str = "actions"
     group_name: str = "group"
-    task_name: str = "task"
     properties: dict[str,str] = {}
 
 class Preset(BaseModel):
+    backend: tp.Literal['LiteGraph'] = 'LiteGraph'
     import_paths: list[ImportPath] = []
     default_graph_settings: DefaultGraphSettings
     output_settings: OutputSettings
@@ -48,7 +48,7 @@ class Preset(BaseModel):
     def print(self):
         return yaml.safe_dump(self.model_dump())
 
-
+    @classmethod
     def load_local_preset(preset_path: tp.Optional[Path] = None):  
         '''
         Awesome option from typer doc
@@ -67,8 +67,7 @@ class Preset(BaseModel):
             print("Create local preset with ")
 
 
-PRESET = Preset.from_configs()
-
+PRESET: Preset = Preset.from_configs()
 
 
 configs_app = typer.Typer(
@@ -76,20 +75,7 @@ configs_app = typer.Typer(
 )
 
 
-
-    
-
 @configs_app.command()
 def print():
-    PRESET.print()``
+    PRESET.print()
 
-
-SETTINGS = Config(
-    paths=[Path(relative_path="test/nodes.py", module_name="basic")],
-    dag_settings={
-        "dag_name": "MyDag",
-        "flavor": "cpu",
-        "schedule": "0 * * * *",
-    },
-    template_settings=Template_config(),
-)

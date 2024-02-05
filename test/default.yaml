@@ -1,0 +1,9 @@
+- load:
+    task_1:
+      bucket: risk_model
+      hash: '3180283'
+      sink_name: S3
+- group_2:
+    task_2:
+      hash: '3180022'
+      threshold: '0'

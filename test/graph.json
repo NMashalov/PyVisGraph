@@ -1,7 +1,18 @@
 {"body": {
         "config": {},
         "extra": {},
-        "groups": [],
+        "groups":[
+        {
+            "bounding": [
+                418,
+                298,
+                609,
+                255
+            ],
+            "color": "#3f789e",
+            "title": "Group"
+        }
+        ],,
         "last_link_id": 4,
         "last_node_id": 6,
         "links": [

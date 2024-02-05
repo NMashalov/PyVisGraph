@@ -1,12 +1,32 @@
 from .scan import Operator
+import uuid
 from pydantic import BaseModel
 import typing as tp
 from types import ModuleType
 import inspect
+from pyvisgraph.config import Preset, PRESET
+
+
 
 class OperatorMart:
-    def __init__(self):
-        self.operators: dict[str,Operator] = {}
+    def __init__(self, preset: Preset = PRESET):
+        self.operators: dict[uuid.UUID,Operator] = {}
+        self.backend = preset.backend
+
+    def share_operators(self): 
+        return self.operators
+
+
+    @staticmethod
+    def parse_preset():
+        return PRESET.import_paths
+
+    @classmethod
+    def from_preset(cls):
+        import_paths = cls.parse_preset()
+        for import_path in import_paths:
+            cls.load_nodes_from_module(import_path)
+            cls.operators: dict[str,Operator] = {}
         
 
     def register(self,inputs: list[tuple] = [], outputs: list[tuple] = [], module_name: str = ''):
@@ -24,7 +44,8 @@ class OperatorMart:
 
         return decorator
     
-    def load_nodes_from_module(self,module: ModuleType, module_name: str):
+    @staticmethod
+    def load_nodes_from_module(module: ModuleType, module_name: str):
 
         def _check_defined_pydantic(x):
             return (
@@ -37,10 +58,9 @@ class OperatorMart:
         for cls in inspect.getmembers(module, _check_defined_pydantic):
             new_node = Operator(*cls)
             new_nodes.append(new_node)
-            self.operators[new_node.hash] = cls[1]
         return {"nodes": new_nodes, "module_name": module_name}
 
-    def validate_graph(self, g):
+    def validate_graph(self, g:):
         if g.nodes:
             for node in g.nodes:
                 props = node.properties
@@ -50,6 +70,7 @@ class OperatorMart:
 
     def from_configs():
         pass
+
 
 
     def from_text(self,text: str, name: str):

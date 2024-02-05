@@ -26,30 +26,7 @@ Output consist of:
 should have modifiable
 """
 
-"""
-Note than fields of different types can not be connected!
-Example:
----
-from pydantic import BaseModel
-from typing import ClassVar
-class MyNode(Base):
-    INPUTS : ClassVar = [
-        Link(
-            name = 'Data',
-            type= 'csv'
-        ),
-        Link(
-            name = 'Model',
-            type= 'csv'
-        ),
-    ]
-    OUTPUT : ClassVar = [
-        Link(
-            name = 'Scores',
-            type= 'csv'
-        ),
-    ]
-"""
+
 
 
 
