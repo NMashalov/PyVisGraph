@@ -1,4 +1,9 @@
-Example of native json of node 
+## Graph representation 
+
+Graph representation 
+
+Following of native Litegraph json of node 
+
 
 ```json
 {
@@ -49,3 +54,25 @@ Example of native json of node
     }
 }
 ```
+
+As you see it requires machinery for representation in convenient sorted nodes, which
+
+## Formatting
+
+
+Node can have multiple inputs and outputs.
+
+Output of node can be used in multiple other nodes. One-to-Many
+Input, conversely, only handle one connection. Many-to-one
+
+Serialize pydantic model to JSON
+and sends to frontend to
+Output consist of:
+- inputs
+    - name
+    - type
+- outputs
+    - name
+    - type
+
+should have modifiable

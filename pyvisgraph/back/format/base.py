@@ -1,15 +1,12 @@
 import typing as tp
-from pydantic import BaseModel, Field
 import networkx as nx  # type: ignore
 import collections
-
-import yaml
-
-from pydantic import create_model, BaseModel
-from pyvisgraph import Preset, PRESET
+from pyvisgraph import PRESET
 import typing as tp
-
+from dataclasses import dataclass
 import abc
+import functools
+
 
 """
 Parse Graph to unified interior format
@@ -17,77 +14,92 @@ Parse Graph to unified interior format
 class WrongGraphException(Exception):
     pass
 
-class Link(BaseModel):
-    name: str 
-    type: str
-
-
-class Node(BaseModel):
-    title: str
+@dataclass
+class Node:
+    title: tp.Optional[str]
     type: str
     properties: dict[str,str]
-    dependencies: tp.Optional[list[Link]]
+    dependencies: tp.Optional[list['Node']] = None
 
-class Group(BaseModel):
+    def update_dependencies(self,node: 'Node'):
+        if self.dependencies:
+            self.dependencies.append(node)
+        else:
+            self.dependencies = [node]
+
+
+class NetworkXMixin:
+    def __init__(self,linkage:list[list[int]]):
+        self.nx_graph =  nx.DiGraph(linkage)
+    
+    @functools.cached_property
+    def sorted_dag(self):       
+        return list(nx.topological_sort(self.nx_graph))
+    
+    @property
+    def check_dag(self):
+        return nx.is_directed_acyclic_graph(self.nx_graph)
+
+    @functools.cached_property
+    def generations(self):
+        return nx.topological_generations(self.nx_graph)
+    
+
+
+@dataclass
+class Group:
     title:str
     nodes: list[Node]
 
-class Graph(BaseModel):
+@dataclass
+class Graph:
+    '''
+    List of nodes ordered in topological order
+    '''
     nodes: list[Node]
-
-class GroupedGraph(BaseModel):
+    
+@dataclass
+class GroupedGraph:
+    '''
+    List of nodes ordered in topological generation
+    '''
     groups: list[Group]
 
-
-class BackendGraph(BaseModel):
+class GraphCreator:
     @abc.abstractmethod
-    def to_graph():
+    def to_graph(self):
         pass
 
     @abc.abstractmethod
-    def to_groupped_graph():
+    def to_groupped_graph(self):
         pass
 
 
-class Namer:
-    def __init__(self, preset: Preset):
-        self.default_name_counter = collections.defaultdict(lambda: 0)
-        self.group_name = preset.default_graph_settings.group_name
-
-    def name(self, obj: Node | Group):
-        if obj.title:
-            return  obj.title
-        
-        if isinstance(obj, Node):
-            suggestion = obj.type
-        elif isinstance(obj, Node):
-            suggestion = self.group_name
-        self.default_name_counter[suggestion] +=1
-        return f"{suggestion}_{self.default_name_counter[suggestion]}"
-    
-
-    def __call__(self, obj: Node | Group | Graph | GroupedGraph):
+class GraphBuilder(NetworkXMixin):
+    def __init__(self,linkage: list[list[int]]):
         '''
-        Name structure in recursive way 
+        Graph
         '''
-        if isinstance(obj, Node):
-            title = self.name(obj)
-            return {
-                title: {
-                    "properties": self.properties,
-                    "dependencies":  self.dependencies
-                } 
-            }
-    
-        elif isinstance(obj, Group):
-            title = self.name(obj)
-            return {
-                title: self(node) for node in self.nodes
-            }
-        elif isinstance(obj, Graph):
-            return [self(node) for node in self.nodes]
-        elif isinstance(obj, GroupedGraph):
-            return  [self(group) for group in obj.groups]
+        super().__init__(linkage=linkage)
+        if not self.check_dag:
+            raise Exception('Should be DAG')
+        for node_id in self.sorted_dag:
+            pass
+       
+    def from_generator(cls,node_generator: tp.Iterator[Node]):
+
+        self.graph = 
+
+    def to_graph(self):
+        return
+
+    def to_grouped_graph(self):
+        return GroupedGraph(self.base_groups)
+
+
+
+
+
 
 
 

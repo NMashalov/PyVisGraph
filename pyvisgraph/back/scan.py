@@ -5,6 +5,7 @@ from pydantic_core._pydantic_core import PydanticUndefinedType
 import inspect
 from functools import wraps
 import uuid 
+from dataclasses import dataclass
 from typing import TypeVar, Type, ClassVar
 
 
@@ -110,8 +111,9 @@ class Property(BaseModel):
             for field_name, field_info in sign.parameters.items()
         }
 
-
-class Operator(BaseModel):
+@dataclass
+class Operator:
+    name: str
     type: str
     id: str = Field(default_factory=uuid.uuid1)
     io: IO

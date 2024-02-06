@@ -7,3 +7,5 @@
     task_2:
       hash: '3180022'
       threshold: '0'
+      needs:
+        - task_1 

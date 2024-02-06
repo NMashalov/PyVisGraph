@@ -2,8 +2,10 @@ from pydantic import BaseModel, create_model
 from .base import Node, Graph,Group,GroupedGraph,BackendGraph
 import typing as tp
 import functools
+import collections
 import networkx as nx  # type: ignore
 from collections import defaultdict
+from pyvisgraph import PRESET
 
 '''
 Read input graph and 
@@ -17,19 +19,19 @@ class LiteGraphNode(BaseModel):
     properties: dict[str, str] = {}
     pos: list[int]
 
-    def to_base_node(self,linkage: dict[int,set[Node]]):
+    def to_base_node(self):
         return Node(
                 title=self.title,
                 properties=self.properties,
-                dependencies=linkage.get(self.id,None)
+                type = self.type,
             )
 
 
 class LiteGraphGroup(BaseModel):
     bounding: list[int]
-    title: tp.Optional[str] = None 
+    title: str 
 
-    def to_corener_xy(self):
+    def to_corner_xy(self):
         ''' 
         Group Bounding in YoLo format:
         bounding[0] - x center
@@ -42,31 +44,29 @@ class LiteGraphGroup(BaseModel):
         y_min, y_max = y-h/2, y+h/2
         return x_min, y_min, x_max, y_max
     
-    @functools.cached_property
     def nodes_in_group(self,nodes:list[LiteGraphNode]):
         '''
         Node center
         pos[0] -x , pos[1] -y 
         '''
-        x_min, y_min, x_max, y_max = self.to_corener_xy()
+        x_min, y_min, x_max, y_max = self.to_corner_xy()
 
-        included_nodes = []
+        included_nodes:list[LiteGraphNode] = []
 
         for node in nodes:
             pos = node.pos
             if  (x_min <= pos[0] <= x_max) and (y_min <= pos[1] <= y_max):
-                included_nodes.append(nodes)
+                included_nodes.append(node)
         return included_nodes
     
-    def to_base_group(self,linkage: dict[int,set[Node]]):
+    def to_base_group(self,linkage: dict[int,set[LiteGraphNode]],nodes: list[LiteGraphNode]):
         return Group(
             title=self.title,
-            nodes=[node.to_base_node(linkage) for node in self.nodes_in_group]
+            nodes=[node.to_base_node() for node in self.nodes_in_group(nodes)]
         )
 
 
-
-class LiteGraph(BackendGraph,BaseModel):
+class LiteGraph(BaseModel):
     nodes : list[LiteGraphNode]
     groups: list[LiteGraphGroup]
     links : list[list[int]]
@@ -88,60 +88,22 @@ class LiteGraph(BackendGraph,BaseModel):
         3 poistion - target node
         We'll form linkage in form of necessities of node
         '''
-        linkage = defaultdict(set)
+        linkage = collections.defaultdict(list)
         for link in self.links:
-            linkage[link[1]].add(link[3])
+            linkage[link[1]].append(link[3])
         return linkage
-    
-
-    @functools.cached_property
-    def base_nodes(self):
-        linkage = self.linkage
-        return [node.to_base_node(linkage) for node in self.nodes]
+     
+    def base_nodes_generator(self):
+        return (node.to_base_node(self.linkage) for node in self.nodes)
 
 
-    @functools.cached_property
-    def base_groups(self):
-        linkage = self.linkage
-        return GroupedGraph(groups=[group.to_base_group(linkage)for group in self.groups])
-         
+    def base_groups_generator(self):
+        return (group.to_base_group(self.linkage) for group in self.groups)
 
-    @functools.cached_property
-    def order_groups(self):
-        '''
-        Topological sort of graph
-        
-        linked list
-        [group: []]
-        '''
-        DG = nx.DiGraph(self.linkage)
-
-        return [
-            sorted(generation) for generation in nx.topological_generations(DG)
-        ]
-
-    def to_graph(self):
-        return Graph(
-            self.base_nodes
-        )
-
-    def to_groupped_graph(self):
-        self.linkage(self)
-        nodes = {node.id: node for node in self.nodes}
-        linkage: set = []
-
-        for group in self.groups:
-            for node in nodes:
-                for link in node.links: 
-                    linkage.add((link[0]))
-                    for link in linkage:
-                        nodes[link[0]].dependencies.append(link[1])
-
-        return GroupedGraph(nodes=nodes,)
 
  # dag settigs model is created in runtime from user configs
 DagInfo: type[BaseModel] = create_model(
-    "DagInfo", **{name: (str, item) for name, item in SETTINGS.dag_settings.items()}
+    "DagInfo", **{name: (str, item) for name, item in PRESET.info_fields.items()}
 )  # type: ignore   
 
 

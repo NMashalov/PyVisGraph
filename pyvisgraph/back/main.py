@@ -12,11 +12,7 @@ class OperatorMart:
     def __init__(self, preset: Preset = PRESET):
         self.operators: dict[uuid.UUID,Operator] = {}
         self.backend = preset.backend
-
-    def share_operators(self): 
-        return self.operators
-
-
+    
     @staticmethod
     def parse_preset():
         return PRESET.import_paths
@@ -60,7 +56,7 @@ class OperatorMart:
             new_nodes.append(new_node)
         return {"nodes": new_nodes, "module_name": module_name}
 
-    def validate_graph(self, g:):
+    def validate_graph(self, g: dict):
         if g.nodes:
             for node in g.nodes:
                 props = node.properties

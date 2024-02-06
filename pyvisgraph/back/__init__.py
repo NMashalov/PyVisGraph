@@ -8,12 +8,19 @@ import json
 from contextlib import asynccontextmanager
 from pydantic import ValidationError
 
+from .main import OperatorMart
+
+
 PATH = Path(__file__).parent.parent
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Load the ML model
+    oper = OperatorMart() 
+
+
+
     local_nodes = []
     for path in SETTINGS.paths:
         local_nodes.append(
@@ -21,8 +28,8 @@ async def lifespan(app: FastAPI):
         )
     app.state.local_nodes = local_nodes
     yield
-    # Clean up the ML models and release the resources
-    del local_nodes
+    # Clean operatorMart
+    del oper
 
 
 server = FastAPI(lifespan=lifespan)

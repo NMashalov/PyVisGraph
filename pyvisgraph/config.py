@@ -17,39 +17,50 @@ class ImportPath(BaseModel):
     relative_path: str
     module_name: tp.Optional[str] = None
 
-class OutputSettings(BaseModel):
+class Endpoints(BaseModel):
+    '''
+    Opens API possibilities
+    '''
+    endpoints: list[str]    
+
+class FormatOutputSettings(BaseModel):
     mode: tp.Literal['linear','groups']
-    dependency_name: str
-    properties_name: str
+    # naming
+    dependency_name: str = 'needs'
+    properties_name: str = 'arguments'
+    default_dag_name: str = "pyvisgraph"
+    default_group_name: str = "group"
+    # info_fileds
+    # properties of dag
+    
 
-
-class DefaultGraphSettings(BaseModel):
-    name: str = "actions"
-    group_name: str = "group"
-    properties: dict[str,str] = {}
 
 class Preset(BaseModel):
     backend: tp.Literal['LiteGraph'] = 'LiteGraph'
     import_paths: list[ImportPath] = []
-    default_graph_settings: DefaultGraphSettings
-    output_settings: OutputSettings
+    info_fields: tp.Optional[dict[str,str]] = None
+    format_output_settings: FormatOutputSettings
 
     @classmethod
     def from_configs(cls, preset_path: Path):
-        return cls(**yaml.safe_load(preset_path.read_text()))
+        if preset_path.exists():
+            return cls(**yaml.safe_load(preset_path.read_text()))
+        else:
+            print("Path doesn't exist. Load default")
+            load_default() 
     
     @classmethod
     def load_default(cls):
         file = LOCAL_PATH / 'default_configs.yaml'
         
-    def save(self, preset_path: Path):
-        return preset_path.write_text(yaml.safe_dump(self.model_dump()))
+    def dump(self, preset_path: Path):
+        return preset_path.write_text()
     
-    def print(self):
+    def to_yaml(self):
         return yaml.safe_dump(self.model_dump())
 
     @classmethod
-    def load_local_preset(preset_path: tp.Optional[Path] = None):  
+    def load_local_preset(cls,preset_path: tp.Optional[Path] = None):  
         '''
         Awesome option from typer doc
         https://typer.tiangolo.com/tutorial/commands/callback/
@@ -58,24 +69,28 @@ class Preset(BaseModel):
         '''
 
         local_preset = Path.cwd() / '.py-vis-graph-preset.yaml'
-        if local_preset.exists():
-            try:
-                CONFIGS = Preset.from_configs()
-            except Exception as e:
-                print('Mistake in configs')
-        else:
-            print("Create local preset with ")
-
+        try:
+            CONFIGS = cls.from_configs(local_preset)
+        except Exception as e:
+            print('Mistake in configs',e)
 
 PRESET: Preset = Preset.from_configs()
-
 
 configs_app = typer.Typer(
     help='Edit defualt configs of pyvisgraph'
 )
 
+@configs_app.command(help="")
+def default():
+    PRESET.print()
+
 
 @configs_app.command()
-def print():
+def ():
+    PRESET.print()
+
+
+@configs_app.command()
+def load():
     PRESET.print()
 
