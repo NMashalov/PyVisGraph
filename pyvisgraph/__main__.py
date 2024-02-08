@@ -8,15 +8,15 @@ import uvicorn
 from pyvisgraph.back import server
 
 
-app = typer.Typer(help='Cli app for Graph Managment')
-app.add_typer(configs_app,name='configs')
+app = typer.Typer(help="Cli app for Graph Managment")
+app.add_typer(configs_app, name="configs")
 
 
 # add options to load custom file
 @app.command()
 def start():
     uvicorn.run(server)
-    webbrowser.open('http:/127.0.0.1', new=2)
+    webbrowser.open("http:/127.0.0.1", new=2)
 
 
 app()

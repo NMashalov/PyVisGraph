@@ -17,9 +17,7 @@ PATH = Path(__file__).parent.parent
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Load the ML model
-    oper = OperatorMart() 
-
-
+    oper = OperatorMart()
 
     local_nodes = []
     for path in SETTINGS.paths:
@@ -72,5 +70,3 @@ async def recieve_graph(graph: Request):
 
 
 server.mount("", StaticFiles(directory=PATH / "web", html=True), name="web")
-
-  

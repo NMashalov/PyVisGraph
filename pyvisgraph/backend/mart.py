@@ -7,12 +7,11 @@ import inspect
 from pyvisgraph.config import Preset, PRESET
 
 
-
 class OperatorMart:
     def __init__(self, preset: Preset = PRESET):
-        self.operators: dict[uuid.UUID,Operator] = {}
+        self.operators: dict[uuid.UUID, Operator] = {}
         self.backend = preset.backend
-    
+
     @staticmethod
     def parse_preset():
         return PRESET.import_paths
@@ -22,10 +21,11 @@ class OperatorMart:
         import_paths = cls.parse_preset()
         for import_path in import_paths:
             cls.load_nodes_from_module(import_path)
-            cls.operators: dict[str,Operator] = {}
-        
+            cls.operators: dict[str, Operator] = {}
 
-    def register(self,inputs: list[tuple] = [], outputs: list[tuple] = [], module_name: str = ''):
+    def register(
+        self, inputs: list[tuple] = [], outputs: list[tuple] = [], module_name: str = ""
+    ):
         """
         Register any object
         INPUTS and OUTPUTS defined explicitly in decorator params
@@ -33,16 +33,17 @@ class OperatorMart:
         """
 
         def decorator(func_to_node: tp.Callable):
-            node = Operator.from_callable(func=func_to_node, inputs=inputs, outputs=outputs)
+            node = Operator.from_callable(
+                func=func_to_node, inputs=inputs, outputs=outputs
+            )
 
             self.operators[node.id] = node
             return func_to_node
 
         return decorator
-    
+
     @staticmethod
     def load_nodes_from_module(module: ModuleType, module_name: str):
-
         def _check_defined_pydantic(x):
             return (
                 inspect.isclass(x)
@@ -67,9 +68,7 @@ class OperatorMart:
     def from_configs():
         pass
 
-
-
-    def from_text(self,text: str, name: str):
+    def from_text(self, text: str, name: str):
         # creates new module
         module = ModuleType(name)
         # populate the module with code
