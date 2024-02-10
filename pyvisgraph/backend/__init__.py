@@ -1,6 +1,9 @@
 from fastapi import FastAPI, Request, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
+from fastapi import APIRouter
+
+
 import uvicorn
 
 from pathlib import Path
@@ -8,7 +11,7 @@ import json
 from contextlib import asynccontextmanager
 from pydantic import ValidationError
 
-from .main import OperatorMart
+from .mart import OperatorMart
 
 
 PATH = Path(__file__).parent.parent
@@ -16,7 +19,6 @@ PATH = Path(__file__).parent.parent
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load the ML model
     oper = OperatorMart()
 
     local_nodes = []
@@ -31,6 +33,10 @@ async def lifespan(app: FastAPI):
 
 
 server = FastAPI(lifespan=lifespan)
+
+
+
+router = APIRouter()
 
 
 @server.exception_handler(WrongGraphException)

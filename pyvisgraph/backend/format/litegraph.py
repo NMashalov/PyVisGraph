@@ -1,16 +1,18 @@
-from pydantic import BaseModel, create_model
-from .base import Node, Graph, Group, GroupedGraph, BackendGraph
+from pydantic import BaseModel, create_model, Field
+from ..base import Node, Graph, Group, DagInfo
 import typing as tp
-import functools
 import collections
 import networkx as nx  # type: ignore
-from collections import defaultdict
 from pyvisgraph import PRESET
+
 
 """
 Read input graph and 
 """
 
+class Size(BaseModel):
+    x: int  = Field(validation_alias='0')
+    y: int  = Field(validation_alias='1')
 
 class LiteGraphNode(BaseModel):
     id: int
@@ -18,14 +20,15 @@ class LiteGraphNode(BaseModel):
     title: tp.Optional[str] = None
     properties: dict[str, str] = {}
     pos: list[int]
+    size: Size
 
-    def to_base_node(self):
+    def to_base_node(self, predecessors: list[Node]):
         return Node(
             title=self.title,
             properties=self.properties,
             type=self.type,
+            dependencies=predecessors
         )
-
 
 class LiteGraphGroup(BaseModel):
     bounding: list[int]
@@ -73,8 +76,13 @@ class LiteGraph(BaseModel):
     groups: list[LiteGraphGroup]
     links: list[list[int]]
 
-    @functools.cached_property
-    def linkage(self):
+    def __init__(self,nodes: list[LiteGraphNode],  groups: list[LiteGraphGroup],links: list[list[int]]):
+        super().__init__(nodes=nodes,groups=groups,links=links) 
+        self.add_graph()
+        self.add_base_nodes()
+        self._nx_graph.graph['groups'] 
+
+    def add_graph(self):
         """
         Link example
             [
@@ -90,24 +98,47 @@ class LiteGraph(BaseModel):
         3 poistion - target node
         We'll form linkage in form of necessities of node
         """
-        linkage = collections.defaultdict(list)
-        for link in self.links:
-            linkage[link[1]].append(link[3])
-        return linkage
+        self._nx_graph = nx.DiGraph()
 
-    def base_nodes_generator(self):
-        return (node.to_base_node(self.linkage) for node in self.nodes)
+        for node in self.nodes: 
+            self._nx_graph.add_node(node.id, node=node)
 
-    def base_groups_generator(self):
-        return (group.to_base_group(self.linkage) for group in self.groups)
+        self._nx_graph.add_edges_from((link[1],link[3]) for link in self.links)
+
+        if not nx.is_directed_acyclic_graph(self._nx_graph):   
+            raise NotImplementedError('Only DAG-s are supported')
+        
+    def get_predecessors(self,id:int):  
+        return [self[predecessors_id]['base_node'] for predecessors_id in self._nx_graph.predecessors(id)] 
+    
+    def __getitem__(self,id: int):
+        '''
+            Returns base node representation
+        '''
+        return self._nx_graph.nodes[id]
+    
+
+    def add_base_nodes(self):       
+        for node_id in nx.topological_sort(self._nx_graph):
+            node:  LiteGraphNode = self[node_id]['node']
+            predecessors = self.get_predecessors(node_id)
+            base_node = node.to_base_node(predecessors) 
+            self[node_id]['base_node'] = base_node
+        
+    def return_graph(self):
+        return Graph(atlas = self._nx_graph )
+
+    
+    def __del__(self):
+        '''
+            Clear node info from atlas
+        '''
+        for (d,g) in self._nx_graph.nodes(data=True):
+            del g['node']
 
 
-# dag settigs model is created in runtime from user configs
-DagInfo: type[BaseModel] = create_model(
-    "DagInfo", **{name: (str, item) for name, item in PRESET.info_fields.items()}
-)  # type: ignore
 
 
-class LiteGraphDag(BaseModel):
-    graph: Graph
+class LiteGraphOutput(BaseModel):
+    graph: LiteGraph
     dag_settings: DagInfo  # type: ignore

@@ -24,6 +24,7 @@ class Endpoints(BaseModel):
     endpoints: list[str]    
 
 class FormatOutputSettings(BaseModel):
+    format: tp.Literal['yaml','json']
     mode: tp.Literal['linear','groups']
     # naming
     dependency_name: str = 'needs'
@@ -47,32 +48,32 @@ class Preset(BaseModel):
             return cls(**yaml.safe_load(preset_path.read_text()))
         else:
             print("Path doesn't exist. Load default")
-            load_default() 
-    
-    @classmethod
-    def load_default(cls):
-        file = LOCAL_PATH / 'default_configs.yaml'
-        
-    def dump(self, preset_path: Path):
-        return preset_path.write_text()
-    
+            file = LOCAL_PATH / 'default_configs.yaml'
+
+    def dump(self):
+        local_preset = Path.cwd() / '.py-vis-graph-preset.yaml'
+        try:
+            local_preset.write_text(self.to_yaml())
+        except Exception as e:
+            print('Mistake in configs',e)
+
     def to_yaml(self):
         return yaml.safe_dump(self.model_dump())
 
     @classmethod
     def load_local_preset(cls,preset_path: tp.Optional[Path] = None):  
         '''
-        Awesome option from typer doc
-        https://typer.tiangolo.com/tutorial/commands/callback/
-
-        Allow option persistent option --preset_path for cli
+        Load preset from current path
         '''
 
         local_preset = Path.cwd() / '.py-vis-graph-preset.yaml'
-        try:
-            CONFIGS = cls.from_configs(local_preset)
-        except Exception as e:
-            print('Mistake in configs',e)
+        if local_preset.exists():
+            try:
+                CONFIGS = cls.from_configs(local_preset)
+            except Exception as e:
+                print('Mistake in configs',e)
+        else:
+            raise Exception 
 
 PRESET: Preset = Preset.from_configs()
 
@@ -81,13 +82,14 @@ configs_app = typer.Typer(
 )
 
 @configs_app.command(help="")
-def default():
-    PRESET.print()
+def start():
+    if 
+        print("Creating preset")
+        PRESET.print()
 
 
-@configs_app.command()
-def ():
-    PRESET.print()
+@configs_app.command():
+    
 
 
 @configs_app.command()

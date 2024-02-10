@@ -1,22 +1,63 @@
 # PyVisGraph
-Tool for organizing python models [Pydantic](https://github.com/jagenjo/litegraph.js/tree/master) in Directed Acyclic Graphs using [Litegraph](https://github.com/jagenjo/litegraph.js/tree/master) interface.
+Visual connecting Python classes in Directed Acyclic Graphs using [Litegraph](https://github.com/jagenjo/litegraph.js/tree/master) interface.
 
 ![Demo.jpg](assets/ui.png)
+
+## Introduction
+
+Start requires some work
+
+1. Add to your class variables INPUT and OUTPUT in format ("arbitray node name","extension")
+    ```python
+    from typing import ClassVar
+    class Myclass:
+        INPUT: ClassVar =  ("Data", ".csv")
+        OUTPUT: ClassVar = ("Model", ".pickle")
+
+        # your init arguments will be properties of model
+        def __init__(self, my_awesome_arg: int):
+            # type will be converted. Use planar input int, string, float and etc
+            ...
+
+    class InferenceClass:
+        # several inputs and ouputs are allowed
+        INPUT: list[ClassVar] =  [("Data", ".csv"),("Model", ".csv")]
+        OUTPUT: ClassVar = [("Data", ".csv")]
+
+    ```
+
+    LiteGraph will make sure, that you won't connect input and output with unequal extensions.
+2. Install everything you need
+    ```bash
+    git clone https://github.com/NMashalov/PyVisGraph# clone repo with git 
+    poetry shell # creates virtual environment for project
+    poetry install # install all dependencies
+    pyvisgraph start # load example 
+    ```
+3. (Optional) Customize `.py-vis-graph-preset.yaml` to your needs
+    ```yaml
+    import_paths:
+    - module_name: scoring
+      import_paths: ./test/nodes.py
+    - module_name: scoring
+      import_paths: ./test/nodes.py
+    preset:
+        output_settings:
+            format: yaml
+            mode: groupped
+            dependency_name: needs
+        graph_info:
+            name: MyDag 
+            group_name: "group"
+            task_name: "task"
+            properties:
+            schedule: '0 * * * *'    
+    ```
 
 Demo via [link](nmashalov.github.io/Pydantic_litegraph/)
 
 ## Quick start 🎈
 
-Prerequisites
-- Python 3.11
-- Poetry
-
-```bash
-git clone https://github.com/NMashalov/Pydantic_litegraph # clone repo with git 
-poetry shell # creates virtual environment for project
-poetry install # install all dependencies
-python pydanticGraph # load example 
-```
 
 You can add your own model by just simple dropping of `.py` file with models.
 
@@ -33,33 +74,8 @@ You can add your own model by just simple dropping of `.py` file with models.
 ## Adding custom model
 For defining models you need only pydantic.
 
-```python
-from pydantic import BaseModel, Field
-from typing import ClassVar
-
-class Scoring(BaseModel):
-    # inputs and outputs should be written in uppercase 
-    # And have type ClassVars
-    INPUTS : ClassVar = [
-        ('Data','.csv'),
-        ('Model','.pkl'),
-    ]
-    # first element in tuple defines connection name in UI
-    # second defines type
-    # note that type should be equal to connect node
-    OUTPUTS : ClassVar = [
-        ('Score','.csv',)
-    ]
-    # all fields will be visualized as interactive 
-    # widgets for fast modification
-    # You can easily add comment to field by
-    # description argument 
-    threshold: int = Field(description='Score cut-off. Below no credit :(')   
-```
-
 Upload can be performed in several convenient way.
 - explicitly define path
-- drop py file
 
 ## Configurate yaml of Graph 
 Can be configured with [`graph.conf.yaml`](graph.conf.yaml).

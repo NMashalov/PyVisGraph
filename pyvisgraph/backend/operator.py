@@ -160,5 +160,11 @@ class Operator:
     def validate_node():
         pass
 
+@dataclass
+class OperatorGroup:
+    name: str
+    operators: list[Operator]
+
+
 
 # you may add default properties to node

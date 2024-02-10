@@ -5,52 +5,35 @@ from pyvisgraph import PRESET
 import typing as tp
 from dataclasses import dataclass
 import abc
-import functools
-
+from pydantic import BaseModel, create_model
 
 """
 Parse Graph to unified interior format
 """
 
+# dag settigs model is created in runtime from user configs
+DagInfo: type[BaseModel] = create_model(
+    "DagInfo", **{name: (str, item) for name, item in PRESET.info_fields.items()}
+)  # type: ignore
+
 
 class WrongGraphException(Exception):
     pass
 
-
 @dataclass
 class Node:
+    id: int
     title: tp.Optional[str]
     type: str
     properties: dict[str, str]
-    dependencies: tp.Optional[list["Node"]] = None
-
-    def update_dependencies(self, node: "Node"):
-        if self.dependencies:
-            self.dependencies.append(node)
-        else:
-            self.dependencies = [node]
+    dependencies: tp.Optional[list[int]] = None
 
 
-class NetworkXMixin:
-    def __init__(self, linkage: list[list[int]]):
-        self.nx_graph = nx.DiGraph(linkage)
-
-    @functools.cached_property
-    def sorted_dag(self):
-        return list(nx.topological_sort(self.nx_graph))
-
-    @property
-    def check_dag(self):
-        return nx.is_directed_acyclic_graph(self.nx_graph)
-
-    @functools.cached_property
-    def generations(self):
-        return nx.topological_generations(self.nx_graph)
 
 
 @dataclass
 class Group:
-    title: str
+    title: tp.Optional[str] = None
     nodes: list[Node]
 
 
@@ -59,17 +42,8 @@ class Graph:
     """
     List of nodes ordered in topological order
     """
-
-    nodes: list[Node]
-
-
-@dataclass
-class GroupedGraph:
-    """
-    List of nodes ordered in topological generation
-    """
-
-    groups: list[Group]
+    atlas: nx.DiGraph
+    
 
 
 class GraphCreator:
@@ -77,27 +51,3 @@ class GraphCreator:
     def to_graph(self):
         pass
 
-    @abc.abstractmethod
-    def to_groupped_graph(self):
-        pass
-
-
-class GraphBuilder(NetworkXMixin):
-    def __init__(self, linkage: list[list[int]]):
-        """
-        Graph
-        """
-        super().__init__(linkage=linkage)
-        if not self.check_dag:
-            raise Exception("Should be DAG")
-        for node_id in self.sorted_dag:
-            pass
-
-    def from_generator(cls, node_generator: tp.Iterator[Node]):
-        self.graph = [node_generator]
-
-    def to_graph(self):
-        return
-
-    def to_grouped_graph(self):
-        return GroupedGraph(self.base_groups)
