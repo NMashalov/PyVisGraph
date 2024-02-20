@@ -1,7 +1,6 @@
-import typer
-from .config import configs_app
 from enum import Enum
 import yaml  # type: ignore
+import hydra
 
 import webbrowser
 import uvicorn
@@ -10,13 +9,8 @@ from pyvisgraph.backend import server
 
 PRESET: Preset = Preset.from_configs()
 
-app = typer.Typer(help="Cli app for Graph Managment")
-app.add_typer(configs_app, name="configs")
-
-
-# add options to load custom file
-@app.command()
-def start():
+@hydra.main(config_path='default.py-vis-graph-preset.yaml')
+def start(cfg):
     if
             print("Creating preset")
         PRESET.print()

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, create_model, Field
-from ..base import Node, Graph, Group, DagInfo
+from ..mart.base import Node, Graph, Group, DagInfo
 import typing as tp
 import collections
 import networkx as nx  # type: ignore
@@ -80,7 +80,6 @@ class LiteGraph(BaseModel):
         super().__init__(nodes=nodes,groups=groups,links=links) 
         self.add_graph()
         self.add_base_nodes()
-        self._nx_graph.graph['groups'] 
 
     def add_graph(self):
         """
@@ -137,8 +136,10 @@ class LiteGraph(BaseModel):
             del g['node']
 
 
-
-
 class LiteGraphOutput(BaseModel):
     graph: LiteGraph
     dag_settings: DagInfo  # type: ignore
+
+
+class BadLiteGraphOutput(Exception):
+    pass

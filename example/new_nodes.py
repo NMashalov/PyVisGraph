@@ -32,25 +32,9 @@ class Scoring(BaseModel):
     threshold: int = Field(description="Score cut off. Below no credit :(")
 
 
-from pydantic import validate_call
-import inspect
+EXPORT_MODELS = {
+    'CsvUploader': UploadCsv,
+    'Score': Scoring
+}
 
-
-class Myop:
-    @validate_call
-    def __init__(self, m: int | None, c: str = "100"):
-        print("Good" if isinstance(m, int) else "bad")
-
-
-sign = inspect.signature(Myop)
-
-from pathlib import Path
-
-file = Path(__file__).parent / "t.py"
-
-
-contents = file.read_text()
-from pyvisgraph.graph.scan import _NODE_MODELS
-
-exec(contents, {})
-print(_NODE_MODELS)
+EXPORT_MODULE_NAME = 'BASE_NODES'

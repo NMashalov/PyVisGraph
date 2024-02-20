@@ -6,7 +6,7 @@ authors = ["Nikita <n.mashalov@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
 pydantic = "^2.5.3"
 fastapi = "^0.108.0"
 uvicorn = "^0.25.0"
@@ -14,6 +14,7 @@ networkx = "^3.2.1"
 typer = "^0.9.0"
 python-multipart = "^0.0.6"
 pyyaml = "^6.0.1"
+hydra-core = "^1.3.2"
 
 
 [tool.poetry.group.test.dependencies]

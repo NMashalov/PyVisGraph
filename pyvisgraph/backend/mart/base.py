@@ -20,6 +20,7 @@ DagInfo: type[BaseModel] = create_model(
 class WrongGraphException(Exception):
     pass
 
+
 @dataclass
 class Node:
     id: int
@@ -27,8 +28,6 @@ class Node:
     type: str
     properties: dict[str, str]
     dependencies: tp.Optional[list[int]] = None
-
-
 
 
 @dataclass
@@ -42,12 +41,11 @@ class Graph:
     """
     List of nodes ordered in topological order
     """
+
     atlas: nx.DiGraph
-    
 
 
 class GraphCreator:
     @abc.abstractmethod
     def to_graph(self):
         pass
-
