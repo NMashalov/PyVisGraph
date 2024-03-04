@@ -1,7 +1,7 @@
 from .operator import Operator
 import uuid
 from pyvisgraph.configs import WrongConfigs
-from pyvisgraph.backend.format import GraphProcessor
+from dataclasses import dataclass
 import typing as tp
 import inspect
 
@@ -9,46 +9,45 @@ import importlib
 from pathlib import Path
 
 
-class OperatorProcessor:
+@dataclass
+class FileOperatorProcessorCfg:
+    '''
+     Reads export model and module
+        Arguments:
+            export_models_name - name of dictionary. If not specified read all models from file
+            export_module_name - name of module. If not specified takes ordinary name
+            inputs_name -
+            outputs_name -
+    '''
+    export_models_name: str
+    export_module_name: str
+    inputs_name: str
+    outputs_name: str
+
+class FileOperatorProcessor:
     """
     Explores module
     """
 
     def __init__(
         self,
-        export_models_name: str,
-        export_module_name: str,
-        inputs_name: str,
-        outputs_name: str,
+        cfg: FileOperatorProcessorCfg
     ):
-        '''
-        Processes file with models for UI
-
-        Reads export model and module 
-        Arguments:
-            export_models_name - name of dictionary. If not specified read all models from file
-            export_module_name - name of module. If not specified takes ordinary name
-            inputs_name - 
-            outputs_name - 
-
-        Example:
-
-            main.py file 
-
+        """
+        Processes file with models for U
+        Example:    
+            ```main.py
             class Cat:
                 INPUTS:
                 OUTPUTS:
 
             EXPORT_MODELS_NAME = {
                 'cat': Cat
-            } 
+            }
             EXPORT_MODULE_NAME = 'Cats'
-        '''
-        self.export_models_name = export_models_name
-        self.export_module_name = export_module_name
-
-        self.inputs_name = inputs_name
-        self.outputs_name = outputs_name
+            ```
+        """
+        self.cfg = cfg
 
     def process_paths(self, module_paths: list[Path]):
         operators_groups: dict[str, Operator] = {}
@@ -63,7 +62,7 @@ class OperatorProcessor:
         return operators_groups, operators_atlas
 
     def format_operator(self, cls: object):
-        op = Operator.from_class(cls, self.inputs_name, self.outputs_name)
+        op = Operator.from_class(cls, self.cfg.inputs_name, self.cfg.outputs_name)
         return op.id, op
 
     def __call__(self, module_path: Path):
@@ -83,16 +82,17 @@ class OperatorProcessor:
         name = getattr(module_spec, self.export_module_name, module_name)
 
         # process with self.export_models_name
-        if hasattr(module_spec, self.export_models_name):
-            models_names = getattr(module_spec, self.export_module_name)
+        if hasattr(module_spec, self.cfg.export_models_name):
+            models_names = getattr(module_spec, self.cfg.export_module_name)
             try:
                 output_dict = dict(
-                    self.format_operator(model_name)  for model_name in models_names
+                    self.format_operator(model_name) for model_name in models_names
                 )
             except AttributeError as e:
                 raise WrongConfigs("Wrong import path") from e
         # process with
         else:
+
             def _check_class(x):
                 return inspect.isclass(x) and x.__module__ == module_name
 
@@ -104,32 +104,37 @@ class OperatorProcessor:
             return name, output_dict
 
 
+@dataclass
+class OperatorMartCfg:
+    file_processor_cfg: FileOperatorProcessorCfg
+    import_paths: list[Path]
+
+
 class OperatorMart:
     """
     Manages collection of
     operators and it's interaction with
     """
 
+    cfg = OperatorMartCfg()
+
     def __init__(
         self,
-        export_models_name: str,
-        export_module_name: str,
-        import_paths: list[Path],
-        inputs_name: str,
-        outputs_name: str,
+        cfg: OperatorMartCfg
     ):
-        self.load_local(import_paths)
-        self.processor = OperatorProcessor(
-            export_models_name, export_module_name, inputs_name, outputs_name
+        self.cfg = cfg
+        self.load_local(cfg.import_paths)
+        
+    def add_file_processor(self,file_processor_cfg: FileOperatorProcessorCfg):
+        self.file_processor = FileOperatorProcessor(
+            file_processor_cfg
         )
 
     def load_local(self, import_paths: list[Path]):
         self.operator_atlas: dict[uuid.UUID, Operator] = {}
-        self.operators_groups, self.operator_atlas = self.processor.process_paths(
+        self.operators_groups, self.operator_atlas = self.file_processor.process_paths(
             import_paths
         )
 
     def to_groups(self):
         return self.operators_groups
-    
-    

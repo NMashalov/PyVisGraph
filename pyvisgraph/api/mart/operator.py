@@ -1,18 +1,16 @@
-from pydantic import BaseModel, Field
 from abc import abstractmethod
 import typing as tp
 
 import inspect
 from functools import wraps
 import uuid
-from dataclasses import dataclass
-
+from dataclasses import dataclass, field
+from .mart import OperatorMart
 
 @dataclass
 class Link:
     name: str
     type: str
-
 
 @dataclass
 class IO:
@@ -24,15 +22,16 @@ class IO:
         return [Link(*item) for item in getattr(model, attribute_name, [])]
 
     @classmethod
-    def from_object(cls, model: object, inputs_name: str, outputs_name: str):
+    def from_object(cls, model: object):
         """
         Grab list of inputs Model should have
         Inputs a
         """
 
+
         return cls(
-            input=cls.get_attribute_items(model, inputs_name),
-            output=cls.get_attribute_items(model, outputs_name),
+            input=cls.get_attribute_items(model, OperatorMart.cfg.file_processor_cfg.inputs_name),
+            output=cls.get_attribute_items(model, OperatorMart.cfg.file_processor_cfg.outputs_name),
         )
 
     @classmethod
@@ -71,7 +70,7 @@ class Property:
 class Operator:
     name: str
     type: str
-    id: str = Field(default_factory=uuid.uuid1)
+    id: str = field(default_factory=uuid.uuid1)
     io: IO
     properties: dict[str, Property]
     helper: tp.Optional[str] = None
@@ -92,24 +91,20 @@ class Operator:
         )
 
     @classmethod
-    def from_class(cls, input_cls: object, inputs_name: str, outputs_name: str):
+    def from_class(cls, input_cls: object):
         func = input_cls.__init__
         sign = inspect.signature(func)
         return cls(
             name=func.__name__,
             id=uuid.uuid1(),
-            io=IO.from_object(input_cls, inputs_name, outputs_name),
+            io=IO.from_object(input_cls),
             # model.model_fields don't contain fields of ClassVar
             properties=Property.parse_signature(sign),
             # put docstring to helper
             helper=func.__doc__,
         )
 
-
 @dataclass
 class OperatorGroup:
     name: str
     operators: list[Operator]
-
-
-# you may add default properties to node

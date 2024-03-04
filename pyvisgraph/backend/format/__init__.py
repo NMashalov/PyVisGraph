@@ -1,4 +1,4 @@
-from .processor import GraphProcessor
+from ...graph.processor import GraphProcessor
 from fastapi import APIRouter
 from .litegraph import LiteGraphOutput
 from contextlib import asynccontextmanager

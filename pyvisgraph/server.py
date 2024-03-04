@@ -1,88 +1,28 @@
-from fastapi import FastAPI, Request, UploadFile
+from fastapi import FastAPI, Request, UploadFile, APIRouter, Depends 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
-from fastapi import APIRouter
-from .configs import configs_router 
-from .format 
+
+from .configs import configs_router
 
 from pathlib import Path
 import json
 from contextlib import asynccontextmanager
 from pydantic import ValidationError
-
-from .mart.mart import OperatorMart
+from .manager import PyVisGraphManager
 
 PATH = Path(__file__).parent.parent
 
 
-
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    oper = OperatorMart()
-
-    local_nodes = []
-    for path in SETTINGS.paths:
-        local_nodes.append(
-            load_nodes_from_local(PATH / path.relative_path, path.module_name)
-        )
-    app.state.local_nodes = local_nodes
+    manager = ()
     yield
-    # Clean operatorMart
-    del oper
-
+        # Clean operatorMart
+    del manager
 
 server = FastAPI(lifespan=lifespan)
-
-
-
-router = APIRouter()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    oper = OperatorMart()
-    yield
-    # Clean operatorMart
-    del oper
-
-
-server = FastAPI(lifespan=lifespan)
-main_router = APIRouter(prefix=f'v1')
+main_router = APIRouter(prefix=f"v1")
 main_router.include_router()
-main_router.include_router(greeting_router)
-
-
-@router.get("")
-async
-
-
-
-from fastapi import FastAPI, Request, UploadFile
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse
-from fastapi import APIRouter
-
-
-import uvicorn
-
-from pathlib import Path
-import json
-from contextlib import asynccontextmanager
-from pydantic import ValidationError
-
-from .mart.mart import OperatorMart
-
-
-PATH = Path(__file__).parent.parent
-
-
-
-
-@server.exception_handler(WrongGraphException)
-async def wrong_graph_exception_handler(request: Request, exc: WrongGraphException):
-    return JSONResponse(status_code=421, content=str(exc))
 
 
 @server.exception_handler(ValidationError)
@@ -90,18 +30,8 @@ async def pydantic_validation_exception_handler(request: Request, exc: Validatio
     return JSONResponse(status_code=418, content=exc.json())
 
 
-@server.get("/dag_fields")
-async def send_dag_fields():
-    return SETTINGS.dag_settings
-
-
-@server.post("/parse_nodes")
-async def parse_nodes(file: UploadFile):
-    return await load_nodes_from_file(file)
-
-
-@server.get("/local_nodes")
-def send_nodes(request: Request):
+@server.get("/operators")
+def operators(request: Request, db: PyVisGraphManager = Depends(get_db)):
     return request.app.state.local_nodes
 
 
@@ -117,5 +47,3 @@ async def receive_graph(graph: Request):
 
 
 server.mount("", StaticFiles(directory=PATH / "web", html=True), name="web")
-
-

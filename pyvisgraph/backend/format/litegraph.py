@@ -10,9 +10,11 @@ from pyvisgraph import PRESET
 Read input graph and 
 """
 
+
 class Size(BaseModel):
-    x: int  = Field(validation_alias='0')
-    y: int  = Field(validation_alias='1')
+    x: int = Field(validation_alias="0")
+    y: int = Field(validation_alias="1")
+
 
 class LiteGraphNode(BaseModel):
     id: int
@@ -27,8 +29,9 @@ class LiteGraphNode(BaseModel):
             title=self.title,
             properties=self.properties,
             type=self.type,
-            dependencies=predecessors
+            dependencies=predecessors,
         )
+
 
 class LiteGraphGroup(BaseModel):
     bounding: list[int]
@@ -76,11 +79,12 @@ class LiteGraph(BaseModel):
     groups: list[LiteGraphGroup]
     links: list[list[int]]
 
-    def __init__(self,nodes: list[LiteGraphNode],  groups: list[LiteGraphGroup],links: list[list[int]]):
-        super().__init__(nodes=nodes,groups=groups,links=links) 
-        self.add_graph()
-        self.add_base_nodes()
 
+
+class LiteGraphProcessor:
+
+    def __init__()
+    
     def add_graph(self):
         """
         Link example
@@ -99,41 +103,42 @@ class LiteGraph(BaseModel):
         """
         self._nx_graph = nx.DiGraph()
 
-        for node in self.nodes: 
+        for node in self.nodes:
             self._nx_graph.add_node(node.id, node=node)
 
-        self._nx_graph.add_edges_from((link[1],link[3]) for link in self.links)
+        self._nx_graph.add_edges_from((link[1], link[3]) for link in self.links)
 
-        if not nx.is_directed_acyclic_graph(self._nx_graph):   
-            raise NotImplementedError('Only DAG-s are supported')
-        
-    def get_predecessors(self,id:int):  
-        return [self[predecessors_id]['base_node'] for predecessors_id in self._nx_graph.predecessors(id)] 
-    
-    def __getitem__(self,id: int):
-        '''
-            Returns base node representation
-        '''
+        if not nx.is_directed_acyclic_graph(self._nx_graph):
+            raise NotImplementedError("Only DAG-s are supported")
+
+    def get_predecessors(self, id: int):
+        return [
+            self[predecessors_id]["base_node"]
+            for predecessors_id in self._nx_graph.predecessors(id)
+        ]
+
+    def __getitem__(self, id: int):
+        """
+        Returns base node representation
+        """
         return self._nx_graph.nodes[id]
-    
 
-    def add_base_nodes(self):       
+    def add_base_nodes(self):
         for node_id in nx.topological_sort(self._nx_graph):
-            node:  LiteGraphNode = self[node_id]['node']
+            node: LiteGraphNode = self[node_id]["node"]
             predecessors = self.get_predecessors(node_id)
-            base_node = node.to_base_node(predecessors) 
-            self[node_id]['base_node'] = base_node
-        
-    def return_graph(self):
-        return Graph(atlas = self._nx_graph )
+            base_node = node.to_base_node(predecessors)
+            self[node_id]["base_node"] = base_node
 
-    
+    def return_graph(self):
+        return Graph(atlas=self._nx_graph)
+
     def __del__(self):
-        '''
-            Clear node info from atlas
-        '''
-        for (d,g) in self._nx_graph.nodes(data=True):
-            del g['node']
+        """
+        Clear node info from atlas
+        """
+        for d, g in self._nx_graph.nodes(data=True):
+            del g["node"]
 
 
 class LiteGraphOutput(BaseModel):

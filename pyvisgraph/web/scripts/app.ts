@@ -64,6 +64,10 @@ function modelToNode(model : ModelSchema,name: string)
 	LiteGraph.registerNodeType(`${name}/${CustomNode.title}`,CustomNode)
 };
 
+function EnvironmentChanger(){
+}
+
+
 export interface pydanticGraph {
 	api: Api;
 	setup(): void;

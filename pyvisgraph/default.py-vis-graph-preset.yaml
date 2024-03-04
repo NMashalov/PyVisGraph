@@ -11,8 +11,7 @@ preset:
     graph_info:
       - 
       -
-      -
-    
+      -  
   import_paths:
     - module_name: scoring
       import_paths: ./test/nodes.py

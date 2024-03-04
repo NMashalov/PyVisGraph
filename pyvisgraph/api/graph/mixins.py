@@ -4,9 +4,9 @@ import typing as tp
 import inspect
 
 
-class CallBackMixin:
+class CallableMixin:
     def register(
-        self, inputs: list[tuple] = [], outputs: list[tuple] = [], module_name: str = ""
+        self,  module_name: str = ""
     ):
         """
         Register any object

@@ -1,21 +1,8 @@
-from enum import Enum
-import yaml  # type: ignore
+from pyvisgraph.manager import PyVisGraphManager
 import hydra
-
-import webbrowser
-import uvicorn
-from pyvisgraph.backend import server
+from configs import Preset
 
 
-PRESET: Preset = Preset.from_configs()
-
-@hydra.main(config_path='default.py-vis-graph-preset.yaml')
-def start(cfg):
-    if
-            print("Creating preset")
-        PRESET.print()
-    uvicorn.run(server)
-    webbrowser.open("http:/127.0.0.1", new=2)
-
-
-app()
+@hydra.main(config_path="default.py-vis-graph-preset.yaml")
+def start(cfg: Preset):
+    PyVisGraphManager(cfg)
