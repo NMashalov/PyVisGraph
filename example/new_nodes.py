@@ -1,10 +1,10 @@
 from pydantic import create_model, BaseModel, Field
 
 from typing import ClassVar
-from annotated_types import Gt
 
 
 class UploadCsv(BaseModel):
+    GROUP = 'Upload'
     OUTPUTS: ClassVar = [
         (
             "Data",
@@ -18,6 +18,7 @@ class Scoring(BaseModel):
     """
     Node for scoring
     """
+    GROUP = 'Inference'
 
     INPUTS: ClassVar = [
         ("Data", ".csv"),

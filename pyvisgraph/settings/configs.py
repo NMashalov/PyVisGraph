@@ -1,9 +1,9 @@
-from pydantic import BaseModel, create_model
 import typing as tp
 from pathlib import Path
 from dataclasses import dataclass
 
 from hydra.core.config_store import ConfigStore
+from .manager import AbstractManager
 
 from fastapi import APIRouter
 
@@ -24,7 +24,6 @@ class Endpoints:
     """
     Opens API possibilities
     """
-
     endpoints: list[str]
 
 
@@ -62,15 +61,9 @@ class WrongConfigs(ValueError):
     pass
 
 
-class ConfigsManager:
-    """
-    Responsible for changing configs from UI
-    """
-
-    def __init__(self, cfg: Preset):
-        self.preset = cfg
-
-    def popualte_manager():
+class ConfigProvider:
+    def __init__(self,  cfg: Preset):
+        self.cfg = cfg
 
     def return_OperatorMartCfg(self):
         return OperatorMartCfg(
@@ -80,6 +73,23 @@ class ConfigsManager:
             inputs_name=self.preset.format_input_settings.inputs_name,
             outputs_name=self.preset.format_input_settings.outputs_name,
         )
+    
+
+
+
+class ConfigsManager:
+    """
+    Responsible for changing configs from UI
+    """
+
+    def __init__(self, cfg: Preset):
+        self.preset = cfg
+
+    def provide_configs(self, manager : AbstractManager):   
+        manager
+
+
+    
 
     def router(self):
         configs_router = APIRouter(prefix="/settings", tags=["settings"])
@@ -87,3 +97,6 @@ class ConfigsManager:
         @configs_router.post("/output_format/{format}")
         def export():
             return
+        
+
+configs_manager = ConfigsManager()

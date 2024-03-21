@@ -1,6 +1,6 @@
 from .operator import Operator
 import uuid
-from pyvisgraph.configs import WrongConfigs
+from pyvisgraph.settings.configs import WrongConfigs
 from dataclasses import dataclass
 import typing as tp
 import inspect
@@ -19,10 +19,11 @@ class FileOperatorProcessorCfg:
             inputs_name -
             outputs_name -
     '''
-    export_models_name: str
-    export_module_name: str
-    inputs_name: str
-    outputs_name: str
+    export_models_name: str = 'EXPORT_MODELS'
+    export_module_name: str = 'EXPORT_MODULE_NAME'
+    inputs_name: str = 'INPUTS'
+    outputs_name: str = 'OUTPUTS'
+    groups_name: str = 'GROUP'
 
 class FileOperatorProcessor:
     """
@@ -38,8 +39,8 @@ class FileOperatorProcessor:
         Example:    
             ```main.py
             class Cat:
-                INPUTS:
-                OUTPUTS:
+                INPUTS: ('Toys', '.csv')
+                OUTPUTS: ('Meow_model', '.pkl')
 
             EXPORT_MODELS_NAME = {
                 'cat': Cat
@@ -79,7 +80,7 @@ class FileOperatorProcessor:
             module_name, module_path
         )
 
-        name = getattr(module_spec, self.export_module_name, module_name)
+        name = getattr(module_spec, self.cfg.export_module_name, module_name)
 
         # process with self.export_models_name
         if hasattr(module_spec, self.cfg.export_models_name):
@@ -90,18 +91,19 @@ class FileOperatorProcessor:
                 )
             except AttributeError as e:
                 raise WrongConfigs("Wrong import path") from e
-        # process with
-        else:
-
-            def _check_class(x):
-                return inspect.isclass(x) and x.__module__ == module_name
-
-            output_dict = dict(
-                self.format_operator(cls)
-                for cls in inspect.getmembers(module_spec, _check_class)
-            )
-
+            
             return name, output_dict
+        else:
+            raise ValueError(f'No {self.cfg.export_models_name} in module {module_path}')
+            # def _check_class(x):
+            #     return inspect.isclass(x) and x.__module__ == module_name
+
+            # output_dict = dict(
+            #     self.format_operator(cls)
+            #     for cls in inspect.getmembers(module_spec, _check_class)
+            # )
+
+            # return name, output_dict
 
 
 @dataclass
@@ -115,8 +117,6 @@ class OperatorMart:
     Manages collection of
     operators and it's interaction with
     """
-
-    cfg = OperatorMartCfg()
 
     def __init__(
         self,
@@ -138,3 +138,6 @@ class OperatorMart:
 
     def to_groups(self):
         return self.operators_groups
+    
+
+operator_mart = OperatorMart()

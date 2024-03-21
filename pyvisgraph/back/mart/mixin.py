@@ -1,12 +1,10 @@
-from typing import TypeVar, Type, ClassVar
 from pydantic_core._pydantic_core import PydanticUndefinedType
 from pydantic import BaseModel, Field
-from .operator import IO
+from .operator import IO, Operator
+import typing as tp
+import inspect
 
-
-PydanticModels = TypeVar("PydanticModels", bound=BaseModel)
-
-
+PydanticModels = tp.TypeVar("PydanticModels", bound=BaseModel)
 
 class CallableMixin:
     def register(
@@ -20,7 +18,7 @@ class CallableMixin:
 
         def decorator(func_to_node: tp.Callable):
             node = Operator.from_callable(
-                func=func_to_node, inputs=inputs, outputs=outputs
+                func=func_to_node
             )
 
             self.operators[node.id] = node

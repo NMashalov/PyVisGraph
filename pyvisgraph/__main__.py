@@ -1,6 +1,6 @@
-from pyvisgraph.manager import PyVisGraphManager
+from pyvisgraph.settings.manager import PyVisGraphManager
 import hydra
-from configs import Preset
+from pyvisgraph.settings.configs import Preset
 
 
 @hydra.main(config_path="default.py-vis-graph-preset.yaml")

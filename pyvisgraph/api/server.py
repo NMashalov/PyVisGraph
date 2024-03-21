@@ -1,26 +1,16 @@
 from fastapi import FastAPI, Request, UploadFile, APIRouter, Depends 
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
-
-from .configs import configs_router
-
 from pathlib import Path
 import json
 from contextlib import asynccontextmanager
 from pydantic import ValidationError
-from .manager import PyVisGraphManager
+from pyvisgraph.back.mart import operator_mart
+
 
 PATH = Path(__file__).parent.parent
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    manager = ()
-    yield
-        # Clean operatorMart
-    del manager
-
-server = FastAPI(lifespan=lifespan)
+server = FastAPI()
 main_router = APIRouter(prefix=f"v1")
 main_router.include_router()
 
@@ -29,9 +19,14 @@ main_router.include_router()
 async def pydantic_validation_exception_handler(request: Request, exc: ValidationError):
     return JSONResponse(status_code=418, content=exc.json())
 
+@server.get("/operators")
+def operators(request: Request):
+    return operator_mart.operators_groups
+
+
 
 @server.get("/operators")
-def operators(request: Request, db: PyVisGraphManager = Depends(get_db)):
+def operators(request: Request):
     return request.app.state.local_nodes
 
 

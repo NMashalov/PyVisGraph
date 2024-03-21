@@ -5,7 +5,7 @@ import inspect
 from functools import wraps
 import uuid
 from dataclasses import dataclass, field
-from .mart import OperatorMart
+from .mart import operator_mart
 
 @dataclass
 class Link:
@@ -27,11 +27,10 @@ class IO:
         Grab list of inputs Model should have
         Inputs a
         """
-
-
+        
         return cls(
-            input=cls.get_attribute_items(model, OperatorMart.cfg.file_processor_cfg.inputs_name),
-            output=cls.get_attribute_items(model, OperatorMart.cfg.file_processor_cfg.outputs_name),
+            input=cls.get_attribute_items(model, operator_mart.cfg.file_processor_cfg.inputs_name),
+            output=cls.get_attribute_items(model, operator_mart.cfg.file_processor_cfg.outputs_name),
         )
 
     @classmethod

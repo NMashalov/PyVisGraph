@@ -1,9 +1,8 @@
 from pydantic import BaseModel, create_model, Field
-from ..mart.base import Node, Graph, Group, DagInfo
 import typing as tp
 import collections
 import networkx as nx  # type: ignore
-from pyvisgraph import PRESET
+from pyvisgraph import Node, Graph, Group, DagInfo
 
 
 """
